@@ -282,6 +282,7 @@ model Family {
   activityLogs     ActivityLog[]
   dashboardLayouts DashboardLayout[]
   messages         Message[]
+  subscription     Subscription?
 
   @@index([createdBy])
   @@map("families")
@@ -762,4 +763,28 @@ model Message {
   @@index([familyId, createdAt])
   @@index([userId])
   @@map("messages")
+}
+
+// ============================================================
+// SUBSCRIPTIONS
+// ============================================================
+
+model Subscription {
+  id                   String  @id @default(cuid())
+  familyId             String  @unique @map("family_id")
+  stripeCustomerId     String  @unique @map("stripe_customer_id")
+  stripeSubscriptionId String? @unique @map("stripe_subscription_id")
+  plan                 String  @default("free")
+  propertyLimit        Int     @default(1) @map("property_limit")
+  status               String  @default("active")
+  currentPeriodEnd     DateTime? @map("current_period_end")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@index([stripeCustomerId])
+  @@index([status])
+  @@map("subscriptions")
 }

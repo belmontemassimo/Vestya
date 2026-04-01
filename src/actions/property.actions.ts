@@ -23,6 +23,24 @@ export async function createProperty(
     const session = await requireFamilyAuth();
     checkPermission(session.user.familyRole, "property:create");
 
+    // Enforce property limit based on subscription
+    const [subscription, propertyCount] = await Promise.all([
+      prisma.subscription.findUnique({
+        where: { familyId: session.user.familyId },
+        select: { propertyLimit: true, plan: true },
+      }),
+      prisma.property.count({
+        where: { familyId: session.user.familyId, deletedAt: null },
+      }),
+    ]);
+    const limit = subscription?.propertyLimit ?? 1;
+    if (limit !== -1 && propertyCount >= limit) {
+      return {
+        success: false,
+        error: `You've reached the limit of ${limit} ${limit === 1 ? "property" : "properties"} on the ${subscription?.plan ?? "Free"} plan. Upgrade to add more.`,
+      };
+    }
+
     const parsed = createPropertySchema.parse(input);
 
     const property = await prisma.property.create({
