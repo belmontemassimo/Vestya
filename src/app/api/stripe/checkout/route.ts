@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { stripe, PLANS, type PlanKey } from "@/lib/stripe";
+import { stripe, PLANS, type PlanKey, getPlanByPriceId, getPropertyLimit } from "@/lib/stripe";
 
 export async function POST(request: Request) {
   try {
@@ -36,7 +36,6 @@ export async function POST(request: Request) {
       });
       customerId = customer.id;
 
-      // Create or update subscription record
       subscription = await prisma.subscription.upsert({
         where: { familyId: session.user.familyId },
         create: {
@@ -45,13 +44,51 @@ export async function POST(request: Request) {
           plan: "free",
           propertyLimit: 1,
         },
-        update: {
-          stripeCustomerId: customerId,
-        },
+        update: { stripeCustomerId: customerId },
       });
     }
 
-    // Create checkout session
+    // If user already has an active Stripe subscription, update it (swap plan)
+    if (subscription.stripeSubscriptionId) {
+      const existingSub = await stripe.subscriptions.retrieve(
+        subscription.stripeSubscriptionId,
+      );
+
+      if (existingSub.status === "active" || existingSub.status === "trialing") {
+        // Swap the price on the existing subscription
+        const updated = await stripe.subscriptions.update(
+          subscription.stripeSubscriptionId,
+          {
+            items: [
+              {
+                id: existingSub.items.data[0].id,
+                price: planConfig.priceId,
+              },
+            ],
+            proration_behavior: "create_prorations",
+          },
+        );
+
+        // Update database immediately
+        const newPriceId = updated.items.data[0]?.price.id;
+        const newPlan = newPriceId ? getPlanByPriceId(newPriceId) : plan;
+
+        await prisma.subscription.update({
+          where: { familyId: session.user.familyId },
+          data: {
+            plan: newPlan,
+            propertyLimit: getPropertyLimit(newPlan),
+            status: "active",
+          },
+        });
+
+        // Redirect back to pricing with success
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://vestya.net";
+        return NextResponse.json({ url: `${appUrl}/en/dashboard?upgraded=true` });
+      }
+    }
+
+    // No existing subscription — create a new checkout session
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://vestya.net";
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -69,9 +106,6 @@ export async function POST(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("[Stripe Checkout]", message);
-    return NextResponse.json(
-      { error: message },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
