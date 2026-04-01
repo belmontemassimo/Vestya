@@ -3,6 +3,7 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { handleActionError } from "@/lib/errors";
+import { sendEmail, buildWelcomeEmail } from "@/lib/email";
 import { registerSchema } from "@/schemas/auth.schema";
 import type { ActionResult } from "@/types/api";
 
@@ -39,6 +40,10 @@ export async function registerUser(
         email: true,
       },
     });
+
+    // Send welcome email (non-blocking)
+    const { subject, html } = buildWelcomeEmail(parsed.name);
+    sendEmail({ to: parsed.email, subject, html }).catch(() => {});
 
     return { success: true, data: user };
   } catch (error) {
