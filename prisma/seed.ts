@@ -32,12 +32,12 @@ async function main() {
   // ------------------------------------------------------------------
   // Users
   // ------------------------------------------------------------------
-  const passwordHash = await bcrypt.hash("Hestia2024!", 10);
+  const passwordHash = await bcrypt.hash("Vestya2024!", 10);
 
   const massimo = await prisma.user.create({
     data: {
       name: "Massimo Belmont",
-      email: "massimo@hestia.dev",
+      email: "massimo@vestya.net",
       passwordHash,
     },
   });
@@ -45,7 +45,7 @@ async function main() {
   const sophie = await prisma.user.create({
     data: {
       name: "Sophie Belmont",
-      email: "sophie@hestia.dev",
+      email: "sophie@vestya.net",
       passwordHash,
     },
   });
@@ -53,7 +53,7 @@ async function main() {
   const lucas = await prisma.user.create({
     data: {
       name: "Lucas Belmont",
-      email: "lucas@hestia.dev",
+      email: "lucas@vestya.net",
       passwordHash,
     },
   });
@@ -61,7 +61,7 @@ async function main() {
   const viewer = await prisma.user.create({
     data: {
       name: "Marie Guest",
-      email: "marie@hestia.dev",
+      email: "marie@vestya.net",
       passwordHash,
     },
   });
@@ -758,10 +758,10 @@ async function main() {
 
   console.log("Seed data created successfully!");
   console.log(
-    "Login credentials: any user email with password 'Hestia2024!'",
+    "Login credentials: any user email with password 'Vestya2024!'",
   );
   console.log(
-    "Users: massimo@hestia.dev, sophie@hestia.dev, lucas@hestia.dev, marie@hestia.dev",
+    "Users: massimo@vestya.net, sophie@vestya.net, lucas@vestya.net, marie@vestya.net",
   );
 }
 

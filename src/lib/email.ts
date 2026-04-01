@@ -4,7 +4,7 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
-const FROM = process.env.EMAIL_FROM ?? "noreply@hestia.dev";
+const FROM = process.env.EMAIL_FROM ?? "noreply@vestya.net";
 
 interface SendEmailParams {
   to: string;
@@ -39,10 +39,10 @@ export function buildInvitationEmail(
   inviteUrl: string
 ): { subject: string; html: string } {
   return {
-    subject: `You've been invited to join ${familyName} on Hestia`,
+    subject: `You've been invited to join ${familyName} on Vestya`,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>Join ${familyName} on Hestia</h2>
+        <h2>Join ${familyName} on Vestya</h2>
         <p>${inviterName} has invited you to join their family workspace.</p>
         <p>
           <a href="${inviteUrl}"

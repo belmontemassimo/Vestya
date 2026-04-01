@@ -1,24 +1,24 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: hestia-db
+    container_name: vestya-db
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: hestia
-      POSTGRES_USER: hestia
-      POSTGRES_PASSWORD: hestia_dev
+      POSTGRES_DB: vestya
+      POSTGRES_USER: vestya
+      POSTGRES_PASSWORD: vestya_dev
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U hestia"]
+      test: ["CMD-SHELL", "pg_isready -U vestya"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   minio:
     image: minio/minio:latest
-    container_name: hestia-storage
+    container_name: vestya-storage
     ports:
       - "9000:9000"
       - "9001:9001"

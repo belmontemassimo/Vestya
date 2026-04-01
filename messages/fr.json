@@ -58,7 +58,7 @@
     "login": "Se connecter",
     "register": "Créer un compte",
     "loginTitle": "Bienvenue",
-    "loginSubtitle": "Connectez-vous à votre compte Hestia",
+    "loginSubtitle": "Connectez-vous à votre compte Vestya",
     "registerTitle": "Créez votre compte",
     "registerSubtitle": "Commencez à gérer les propriétés de votre famille",
     "email": "Adresse email",
@@ -75,7 +75,7 @@
     "logout": "Se déconnecter",
     "acceptInvite": "Accepter l'invitation",
     "acceptInviteTitle": "Vous avez été invité(e)",
-    "acceptInviteSubtitle": "Rejoignez {familyName} sur Hestia",
+    "acceptInviteSubtitle": "Rejoignez {familyName} sur Vestya",
     "inviteExpired": "Cette invitation a expiré",
     "inviteAccepted": "Vous avez rejoint {familyName} !",
     "acceptInvitation": "Accepter l'invitation",
@@ -83,7 +83,7 @@
     "joinFamily": "Rejoindre la famille"
   },
   "onboarding": {
-    "title": "Bienvenue sur Hestia",
+    "title": "Bienvenue sur Vestya",
     "subtitle": "Configurons l'espace de votre famille",
     "createFamily": "Créer une Famille",
     "createFamilyDesc": "Créez un espace familial et invitez des membres plus tard",

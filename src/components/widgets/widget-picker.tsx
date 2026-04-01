@@ -114,7 +114,7 @@ export function WidgetPicker({
         xhr.send(file);
       });
 
-      const imageUrl = `${process.env.NEXT_PUBLIC_S3_PUBLIC_URL ?? "http://localhost:9000/hestia-documents"}/${storageKey}`;
+      const imageUrl = `${process.env.NEXT_PUBLIC_S3_PUBLIC_URL ?? "http://localhost:9000/vestya-documents"}/${storageKey}`;
       await setPropertyCoverImage(selectedPropertyId, imageUrl);
 
       onAddWidget("property", {

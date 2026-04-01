@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Authentication flows", () => {
-  test("landing page shows Hestia branding", async ({ page }) => {
+  test("landing page shows Vestya branding", async ({ page }) => {
     await page.goto("/");
     const body = await page.textContent("body");
-    expect(body).toContain("Hestia");
+    expect(body).toContain("Vestya");
   });
 
   test("clicking Get Started navigates to register page", async ({ page }) => {

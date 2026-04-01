@@ -92,7 +92,7 @@ export function LoginForm() {
                   <FormControl>
                     <Input
                       type="email"
-                      placeholder="massimo@hestia.dev"
+                      placeholder="massimo@vestya.net"
                       autoComplete="email"
                       {...field}
                     />

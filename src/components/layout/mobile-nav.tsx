@@ -27,7 +27,7 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
       <SheetContent side="left" className="w-[260px] bg-slate-50 text-slate-900 p-0 border-slate-200">
         <SheetHeader className="px-6 py-5">
           <SheetTitle className="text-sm font-semibold tracking-tight text-slate-900">
-            {familyName ?? "Hestia"}
+            {familyName ?? "Vestya"}
           </SheetTitle>
         </SheetHeader>
 

@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 
 const DATABASE_URL =
   process.env.TEST_DATABASE_URL ??
-  "postgresql://hestia_test:hestia_test_password@localhost:5433/hestia_test";
+  "postgresql://vestya_test:vestya_test_password@localhost:5433/vestya_test";
 
 export const testPrisma = new PrismaClient({
   datasources: { db: { url: DATABASE_URL } },

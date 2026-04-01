@@ -16,7 +16,7 @@ const s3Client = new S3Client({
   forcePathStyle: process.env.S3_FORCE_PATH_STYLE === "true",
 });
 
-const BUCKET = process.env.S3_BUCKET ?? "hestia-documents";
+const BUCKET = process.env.S3_BUCKET ?? "vestya-documents";
 
 export async function getUploadUrl(
   key: string,

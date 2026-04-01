@@ -27,7 +27,7 @@ export default async function LandingPage() {
       {/* Navigation */}
       <nav className="mb-16 flex items-center justify-between">
         <span className="text-2xl font-bold tracking-tight text-primary">
-          Hestia
+          Vestya
         </span>
         <div className="flex items-center gap-4">
           <Link
@@ -91,7 +91,7 @@ export default async function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-border pt-8 text-center">
         <p className="text-sm text-muted-foreground">
-          Hestia &mdash; Private family management dashboard
+          Vestya &mdash; Private family management dashboard
         </p>
       </footer>
     </div>

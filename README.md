@@ -1,4 +1,4 @@
-# Hestia - Housing Manager
+# Vestya - Housing Manager
 
 A private, multi-tenant family property management dashboard. Manage properties, maintenance tasks, contacts, documents, finances, and calendar events in one secure workspace.
 
@@ -42,8 +42,8 @@ A private, multi-tenant family property management dashboard. Manage properties,
 
 ```bash
 # 1. Clone and install
-git clone https://github.com/belmontemassimo/Hestia.git
-cd Hestia
+git clone https://github.com/belmontemassimo/Vestya.git
+cd Vestya
 npm install
 
 # 2. Set up environment
@@ -58,7 +58,7 @@ npm run db:push
 npm run db:seed
 
 # 5. Create MinIO bucket
-docker exec hestia-storage sh -c 'mc alias set local http://localhost:9000 minioadmin minioadmin && mc mb --ignore-existing local/hestia-documents && mc anonymous set download local/hestia-documents'
+docker exec vestya-storage sh -c 'mc alias set local http://localhost:9000 minioadmin minioadmin && mc mb --ignore-existing local/vestya-documents && mc anonymous set download local/vestya-documents'
 
 # 6. Start dev server
 npm run dev
@@ -70,10 +70,10 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Email | Role | Password |
 |-------|------|----------|
-| massimo@hestia.dev | Owner | `Hestia2024!` |
-| sophie@hestia.dev | Admin | `Hestia2024!` |
-| lucas@hestia.dev | Member | `Hestia2024!` |
-| marie@hestia.dev | Viewer | `Hestia2024!` |
+| massimo@vestya.net | Owner | `Vestya2024!` |
+| sophie@vestya.net | Admin | `Vestya2024!` |
+| lucas@vestya.net | Member | `Vestya2024!` |
+| marie@vestya.net | Viewer | `Vestya2024!` |
 
 ## Project Structure
 

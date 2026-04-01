@@ -1,4 +1,4 @@
-# Hestia — Family Property Management Dashboard
+# Vestya — Family Property Management Dashboard
 
 ## Quick Start
 
@@ -19,11 +19,11 @@ npm run db:seed
 npm run dev
 ```
 
-Login: any email below with password `Hestia2024!`
-- massimo@hestia.dev (OWNER)
-- sophie@hestia.dev (ADMIN)
-- lucas@hestia.dev (MEMBER)
-- marie@hestia.dev (VIEWER)
+Login: any email below with password `Vestya2024!`
+- massimo@vestya.net (OWNER)
+- sophie@vestya.net (ADMIN)
+- lucas@vestya.net (MEMBER)
+- marie@vestya.net (VIEWER)
 
 ## Tech Stack
 

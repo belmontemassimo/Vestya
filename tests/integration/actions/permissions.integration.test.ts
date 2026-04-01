@@ -30,7 +30,7 @@ function createSession(
   familyId: string,
   familyRole: string,
   name = "Test User",
-  email = "test@hestia.dev",
+  email = "test@vestya.net",
 ) {
   return {
     user: {

@@ -35,7 +35,7 @@ export async function geocodeAddress(parts: {
 
     const response = await fetch(url.toString(), {
       headers: {
-        "User-Agent": "Hestia-FamilyDashboard/1.0",
+        "User-Agent": "Vestya-FamilyDashboard/1.0",
       },
       signal: AbortSignal.timeout(5000),
     });

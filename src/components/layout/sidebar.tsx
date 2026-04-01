@@ -20,7 +20,7 @@ export function Sidebar() {
             {familyName}
           </span>
         ) : (
-          <span className="text-sm font-semibold tracking-tight">Hestia</span>
+          <span className="text-sm font-semibold tracking-tight">Vestya</span>
         )}
       </div>
 

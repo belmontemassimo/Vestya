@@ -23,7 +23,7 @@ export async function createTestUser(
   const user = await prisma.user.create({
     data: {
       name: overrides.name ?? `Test User ${random}`,
-      email: overrides.email ?? `test-${timestamp}-${random}@hestia.dev`,
+      email: overrides.email ?? `test-${timestamp}-${random}@vestya.net`,
       passwordHash,
     },
   });

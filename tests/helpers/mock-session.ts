@@ -20,7 +20,7 @@ export function createMockSession(overrides: Partial<MockSessionUser> = {}): Moc
     user: {
       id: "test-user-id",
       name: "Test User",
-      email: "test@hestia.dev",
+      email: "test@vestya.net",
       image: null,
       familyId: "test-family-id",
       familyRole: "OWNER",
