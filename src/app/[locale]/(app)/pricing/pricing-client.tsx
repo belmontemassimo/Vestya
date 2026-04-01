@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "@/i18n/navigation";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -67,28 +68,46 @@ const PLANS = [
   },
 ];
 
+function planIndex(key: string): number {
+  return PLANS.findIndex((p) => p.key === key);
+}
+
 interface PricingClientProps {
   currentPlan: string;
 }
 
 export function PricingClient({ currentPlan }: PricingClientProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
 
-  async function handleSelectPlan(plan: string) {
-    if (plan === "free" || plan === currentPlan) return;
+  async function handleChangePlan(plan: string) {
+    if (plan === currentPlan) return;
 
     setLoading(plan);
     try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
+      if (plan === "free") {
+        // Cancel subscription
+        const res = await fetch("/api/stripe/cancel", { method: "POST" });
+        const data = await res.json();
+        if (data.success) {
+          toast.success("Subscription cancelled");
+          router.refresh();
+        } else {
+          toast.error(data.error ?? "Failed to cancel");
+        }
       } else {
-        toast.error(data.error ?? "Failed to start checkout");
+        // Upgrade or downgrade via checkout
+        const res = await fetch("/api/stripe/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plan }),
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          toast.error(data.error ?? "Failed to change plan");
+        }
       }
     } catch {
       toast.error("Something went wrong");
@@ -97,22 +116,7 @@ export function PricingClient({ currentPlan }: PricingClientProps) {
     }
   }
 
-  async function handleManage() {
-    setLoading("manage");
-    try {
-      const res = await fetch("/api/stripe/portal", { method: "POST" });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        toast.error(data.error ?? "Failed to open billing portal");
-      }
-    } catch {
-      toast.error("Something went wrong");
-    } finally {
-      setLoading(null);
-    }
-  }
+  const currentIndex = planIndex(currentPlan);
 
   return (
     <div className="space-y-8">
@@ -124,9 +128,22 @@ export function PricingClient({ currentPlan }: PricingClientProps) {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {PLANS.map((plan) => {
           const isCurrent = currentPlan === plan.key;
-          const isDowngrade =
-            PLANS.findIndex((p) => p.key === currentPlan) >
-            PLANS.findIndex((p) => p.key === plan.key);
+          const thisIndex = planIndex(plan.key);
+          const isUpgrade = thisIndex > currentIndex;
+          const isDowngrade = thisIndex < currentIndex;
+
+          let buttonLabel = "Upgrade";
+          let buttonVariant: "default" | "outline" | "destructive" = "default";
+
+          if (isCurrent) {
+            buttonLabel = "Current plan";
+          } else if (plan.key === "free") {
+            buttonLabel = "Cancel subscription";
+            buttonVariant = "destructive";
+          } else if (isDowngrade) {
+            buttonLabel = "Downgrade";
+            buttonVariant = "outline";
+          }
 
           return (
             <div
@@ -136,6 +153,7 @@ export function PricingClient({ currentPlan }: PricingClientProps) {
                 plan.popular
                   ? "border-slate-900 shadow-lg"
                   : "border-slate-200",
+                isCurrent && "ring-2 ring-slate-900",
               )}
             >
               {plan.popular && (
@@ -169,40 +187,17 @@ export function PricingClient({ currentPlan }: PricingClientProps) {
                 ))}
               </ul>
 
-              {isCurrent ? (
-                <Button variant="outline" disabled className="w-full">
-                  Current plan
-                </Button>
-              ) : plan.key === "free" ? (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleManage}
-                  disabled={currentPlan === "free" || loading === "manage"}
-                >
-                  {currentPlan === "free" ? "Current plan" : "Downgrade"}
-                </Button>
-              ) : isDowngrade ? (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleManage}
-                  disabled={loading === "manage"}
-                >
-                  Manage subscription
-                </Button>
-              ) : (
-                <Button
-                  className={cn(
-                    "w-full",
-                    plan.popular && "bg-slate-900 hover:bg-slate-800",
-                  )}
-                  onClick={() => handleSelectPlan(plan.key)}
-                  disabled={loading === plan.key}
-                >
-                  {loading === plan.key ? "Loading..." : "Upgrade"}
-                </Button>
-              )}
+              <Button
+                variant={isCurrent ? "outline" : buttonVariant}
+                className={cn(
+                  "w-full",
+                  !isCurrent && isUpgrade && plan.popular && "bg-slate-900 hover:bg-slate-800",
+                )}
+                disabled={isCurrent || loading === plan.key}
+                onClick={() => handleChangePlan(plan.key)}
+              >
+                {loading === plan.key ? "Loading..." : buttonLabel}
+              </Button>
             </div>
           );
         })}

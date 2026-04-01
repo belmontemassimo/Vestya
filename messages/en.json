@@ -39,7 +39,8 @@
     "notifications": "Notifications",
     "members": "Members",
     "settings": "Settings",
-    "subscription": "Subscription"
+    "subscription": "Subscription",
+    "messages": "Messages"
   },
   "landing": {
     "hero": "Your Family's Operating System",
