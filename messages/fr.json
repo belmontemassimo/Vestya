@@ -90,7 +90,7 @@
     "joinFamily": "Rejoindre une Famille",
     "joinFamilyDesc": "Utilisez un code d'invitation pour rejoindre une famille",
     "familyName": "Nom de famille",
-    "familyNamePlaceholder": "ex. La Famille Belmont",
+    "familyNamePlaceholder": "ex. La Famille Dupont",
     "inviteCode": "Code d'invitation",
     "inviteCodePlaceholder": "Collez le code de votre invitation",
     "familyCreated": "Famille créée ! Redirection...",
