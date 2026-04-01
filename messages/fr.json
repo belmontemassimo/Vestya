@@ -24,7 +24,9 @@
     "showing": "Affichage de {count} sur {total}",
     "error": "Une erreur est survenue",
     "success": "Succès",
-    "or": "ou"
+    "or": "ou",
+    "signOut": "Déconnexion",
+    "confirm": "Confirmer"
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -75,7 +77,10 @@
     "acceptInviteTitle": "Vous avez été invité(e)",
     "acceptInviteSubtitle": "Rejoignez {familyName} sur Hestia",
     "inviteExpired": "Cette invitation a expiré",
-    "inviteAccepted": "Vous avez rejoint {familyName} !"
+    "inviteAccepted": "Vous avez rejoint {familyName} !",
+    "acceptInvitation": "Accepter l'invitation",
+    "unexpectedError": "Une erreur inattendue est survenue.",
+    "joinFamily": "Rejoindre la famille"
   },
   "onboarding": {
     "title": "Bienvenue sur Hestia",
@@ -109,7 +114,12 @@
     "totalProperties": "Propriétés",
     "openTasks": "Tâches ouvertes",
     "monthlySpending": "Dépenses mensuelles",
-    "upcomingReminders": "Rappels à venir"
+    "upcomingReminders": "Rappels à venir",
+    "expenses": "Dépenses",
+    "income": "Revenus",
+    "noUpcomingEvents": "Aucun événement à venir",
+    "noRecentTasks": "Aucune tâche récente",
+    "noRecentActivity": "Aucune activité récente"
   },
   "properties": {
     "title": "Propriétés",
@@ -157,8 +167,17 @@
       "documents": "Documents",
       "spending": "Dépenses",
       "occupancy": "Occupation",
-      "calendar": "Calendrier"
-    }
+      "calendar": "Calendrier",
+      "financials": "Finances",
+      "occupancies": "Occupations"
+    },
+    "emptyTitle": "Aucune propriété",
+    "emptyDescription": "Ajoutez votre première propriété pour commencer.",
+    "noTasks": "Aucune tâche pour cette propriété",
+    "noContacts": "Aucun contact lié",
+    "noDocuments": "Aucun document",
+    "noFinancials": "Aucun enregistrement financier",
+    "noOccupancies": "Aucun enregistrement d'occupation"
   },
   "tasks": {
     "title": "Tâches",
@@ -216,7 +235,14 @@
       "DONE": "Terminé",
       "CANCELLED": "Annulé"
     },
-    "categoryLabel": "Catégorie"
+    "categoryLabel": "Catégorie",
+    "estimatedCost": "Coût estimé",
+    "actualCost": "Coût réel",
+    "comments": "Commentaires",
+    "noComments": "Aucun commentaire",
+    "addComment": "Écrire un commentaire...",
+    "taskDetails": "Détails de la tâche",
+    "unknownUser": "Inconnu"
   },
   "contacts": {
     "title": "Contacts",
@@ -265,7 +291,12 @@
       "ROOFER": "Couvreur",
       "PAINTER": "Peintre",
       "OTHER": "Autre"
-    }
+    },
+    "contactInfo": "Coordonnées",
+    "linkedProperties": "Propriétés liées",
+    "assignedTasks": "Tâches assignées",
+    "noTasks": "Aucune tâche assignée",
+    "financialHistory": "Historique financier"
   },
   "calendar": {
     "title": "Calendrier",
@@ -329,7 +360,10 @@
     "uploadError": "Échec du téléchargement. Veuillez réessayer.",
     "dropOrClick": "Glissez-déposez un fichier ou cliquez pour parcourir.",
     "selectFile": "Sélectionner un fichier",
-    "uploading": "Téléchargement..."
+    "uploading": "Téléchargement...",
+    "tags": "Tags",
+    "noTagsAvailable": "Aucune propriété ou membre à taguer.",
+    "selectTags": "Sélectionner des tags..."
   },
   "spending": {
     "title": "Dépenses",
@@ -425,7 +459,15 @@
     "changePassword": "Changer le mot de passe",
     "dangerZone": "Zone de danger",
     "deleteFamily": "Supprimer la famille",
-    "language": "Langue"
+    "language": "Langue",
+    "profileDescription": "Mettez à jour vos informations personnelles.",
+    "profileUpdated": "Profil mis à jour !",
+    "email": "Email",
+    "emailReadOnly": "L'email ne peut pas être modifié.",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "passwordChanged": "Mot de passe modifié !",
+    "updatePassword": "Modifier le mot de passe"
   },
   "activity": {
     "title": "Journal d'activité",

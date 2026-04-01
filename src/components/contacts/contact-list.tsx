@@ -5,7 +5,7 @@ import { Users } from "lucide-react";
 import { ContactCard } from "@/components/contacts/contact-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
-import { Link } from "@/i18n/navigation";
+
 import {
   Select,
   SelectContent,
@@ -36,12 +36,14 @@ interface ContactListProps {
   contacts: readonly Contact[];
   categoryFilter?: string;
   onCategoryChange?: (value: string) => void;
+  onAdd?: () => void;
 }
 
 export function ContactList({
   contacts,
   categoryFilter = "all",
   onCategoryChange,
+  onAdd,
 }: ContactListProps) {
   const t = useTranslations("contacts");
 
@@ -69,9 +71,9 @@ export function ContactList({
           title={t("emptyTitle")}
           description={t("emptyDescription")}
           action={
-            <Button asChild>
-              <Link href="/contacts/new">{t("addContact")}</Link>
-            </Button>
+            onAdd ? (
+              <Button onClick={onAdd}>{t("addContact")}</Button>
+            ) : undefined
           }
         />
       ) : (

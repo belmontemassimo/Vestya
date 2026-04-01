@@ -54,9 +54,15 @@ export default async function DashboardPage() {
     }),
     prisma.message.findMany({
       where: { familyId },
-      include: { user: { select: { name: true, image: true } } },
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        userId: true,
+        user: { select: { name: true, image: true } },
+      },
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: 6,
     }),
     prisma.reminder.findMany({
       where: {
@@ -69,6 +75,14 @@ export default async function DashboardPage() {
     }),
     prisma.document.findMany({
       where: { familyId, deletedAt: null },
+      select: {
+        id: true,
+        fileName: true,
+        mimeType: true,
+        sizeBytes: true,
+        tags: true,
+        createdAt: true,
+      },
       orderBy: { createdAt: "desc" },
       take: 10,
     }),

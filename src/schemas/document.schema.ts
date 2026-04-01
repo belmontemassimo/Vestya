@@ -7,7 +7,13 @@ export const uploadDocumentSchema = z.object({
   sizeBytes: z.coerce.number().int().positive("File size must be positive"),
   propertyId: z.string().optional(),
   notes: z.string().optional(),
-  tags: z.array(z.string()).default([]),
+  tags: z.array(
+    z.object({
+      id: z.string(),
+      label: z.string(),
+      type: z.string(),
+    }),
+  ).default([]),
   visibilityLevel: z.nativeEnum(VisibilityLevel).default(VisibilityLevel.FAMILY),
   expiryDate: z.coerce.date().optional(),
 });

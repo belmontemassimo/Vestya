@@ -1,55 +1,359 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { formatDateShort } from "@/lib/utils";
+import { useRouter } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
+import { WidgetHeader } from "@/components/widgets/widget-header";
+import { FormDialog } from "@/components/shared/form-dialog";
+import { EventForm } from "@/components/calendar/event-form";
+import { createEvent } from "@/actions/event.actions";
 
-interface CalendarWidgetProps {
-  events: Array<{
-    id: string;
-    title: string;
-    startAt: string;
-    endAt?: string | null;
-    allDay: boolean;
-    property?: { name: string } | null;
-  }>;
+interface CalendarEvent {
+  id: string;
+  title: string;
+  startAt: string;
+  endAt?: string | null;
+  allDay: boolean;
+  property?: { name: string } | null;
 }
 
-export function CalendarWidget({ events }: CalendarWidgetProps) {
-  const t = useTranslations("calendar");
+interface CalendarWidgetProps {
+  events: CalendarEvent[];
+  gridW: number;
+  gridH: number;
+  propertyId?: string;
+}
 
-  if (events.length === 0) {
-    return (
-      <p className="text-center text-sm italic text-slate-400">
-        {t("noEvents")}
-      </p>
-    );
+const EVENT_COLORS = [
+  "bg-blue-100 text-blue-700",
+  "bg-violet-100 text-violet-700",
+  "bg-amber-100 text-amber-700",
+  "bg-emerald-100 text-emerald-700",
+  "bg-rose-100 text-rose-700",
+  "bg-cyan-100 text-cyan-700",
+];
+
+function getEventColor(index: number): string {
+  return EVENT_COLORS[index % EVENT_COLORS.length];
+}
+
+export function CalendarWidget({ events, gridW, gridH, propertyId }: CalendarWidgetProps) {
+  const t = useTranslations("calendar");
+  const router = useRouter();
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  async function handleCreate(values: Record<string, unknown>) {
+    const payload = {
+      ...values,
+      startAt: values.startAt,
+      linkedContactId: values.contactId || undefined,
+    };
+    delete (payload as Record<string, unknown>).contactId;
+    if (propertyId) {
+      (payload as Record<string, unknown>).propertyId = propertyId;
+    }
+    const result = await createEvent(payload);
+    if (result.success) {
+      setDialogOpen(false);
+      router.refresh();
+    }
+    return result;
   }
 
-  const displayed = events.slice(0, 5);
+  return (
+    <>
+      <div className="flex h-full flex-col">
+        <WidgetHeader title={t("title")} onAdd={() => setDialogOpen(true)} addLabel={t("addEvent")} />
+        <div className="min-h-0 flex-1">
+          {gridW < 6 ? (
+            <DayView events={events} />
+          ) : gridH < 6 ? (
+            <WeekView events={events} />
+          ) : (
+            <MonthView events={events} />
+          )}
+        </div>
+      </div>
+      <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title={t("addEvent")}>
+        <EventForm properties={[]} contacts={[]} onSubmit={handleCreate} defaultValues={propertyId ? { propertyId } : undefined} />
+      </FormDialog>
+    </>
+  );
+}
+
+// ────────────────────────────────────────────
+// DAY VIEW — single column, hours 00–23
+// ────────────────────────────────────────────
+
+function DayView({ events }: { events: CalendarEvent[] }) {
+  const now = new Date();
+
+  const todayEvents = useMemo(() => {
+    const s = startOfDay(now);
+    const e = endOfDay(now);
+    return events.filter((ev) => {
+      const d = new Date(ev.startAt);
+      return d >= s && d <= e;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [events]);
+
+  const hours = Array.from({ length: 24 }, (_, i) => i);
 
   return (
-    <div className="space-y-2.5">
-      {displayed.map((event) => (
-        <div
-          key={event.id}
-          className="flex items-start gap-3 rounded-lg border border-slate-100 px-3 py-2"
-        >
-          <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-slate-700">
-              {event.title}
-            </p>
-            <p className="text-xs text-slate-400">
-              {formatDateShort(event.startAt)}
-              {event.property && (
-                <span className="ml-1.5 text-slate-300">
-                  {event.property.name}
-                </span>
-              )}
-            </p>
+    <div className="flex h-full flex-col">
+      <div className="mb-2 text-xs font-semibold text-slate-800">
+        {formatDateHeader(now)}
+      </div>
+      <div className="relative flex-1 overflow-y-auto">
+        {hours.map((hour) => (
+          <div key={hour} className="flex h-6 items-start">
+            <span className="w-8 shrink-0 text-[10px] text-slate-300">
+              {String(hour).padStart(2, "0")}
+            </span>
+            <div className="flex-1 border-t border-slate-100" />
           </div>
-        </div>
-      ))}
+        ))}
+        {todayEvents.map((event, i) => {
+          const d = new Date(event.startAt);
+          const top = (d.getHours() + d.getMinutes() / 60) * 24;
+          return (
+            <div
+              key={event.id}
+              className={cn(
+                "absolute left-8 right-1 truncate rounded-md px-1.5 py-0.5 text-[10px] font-medium",
+                getEventColor(i),
+              )}
+              style={{ top: `${top}px` }}
+            >
+              {event.title}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
+}
+
+// ────────────────────────────────────────────
+// WEEK VIEW — Mon–Sun columns, hours on y
+// ────────────────────────────────────────────
+
+const DAYS_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+function WeekView({ events }: { events: CalendarEvent[] }) {
+  const now = new Date();
+  const monday = getMonday(now);
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+
+  const weekEvents = useMemo(() => {
+    const s = startOfDay(weekDays[0]);
+    const e = endOfDay(weekDays[6]);
+    return events.filter((ev) => {
+      const d = new Date(ev.startAt);
+      return d >= s && d <= e;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [events]);
+
+  const hours = [0, 3, 6, 9, 12, 15, 18, 21];
+
+  return (
+    <div className="flex h-full flex-col overflow-hidden">
+      {/* Header */}
+      <div className="flex border-b border-slate-100 pb-1">
+        <div className="w-6 shrink-0" />
+        {weekDays.map((d, i) => {
+          const today = isSameDay(d, now);
+          return (
+            <div key={i} className="flex-1 text-center">
+              <div className="text-[9px] text-slate-400">{DAYS_SHORT[i]}</div>
+              <div
+                className={cn(
+                  "mx-auto mt-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-medium",
+                  today ? "bg-slate-800 text-white" : "text-slate-600",
+                )}
+              >
+                {d.getDate()}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {/* Grid */}
+      <div className="relative flex-1 overflow-hidden pt-0.5">
+        {hours.map((h) => (
+          <div key={h} className="flex" style={{ height: `${100 / hours.length}%` }}>
+            <span className="w-6 shrink-0 text-[8px] text-slate-300">
+              {String(h).padStart(2, "0")}
+            </span>
+            <div className="flex-1 border-t border-slate-50" />
+          </div>
+        ))}
+        {weekEvents.map((event, i) => {
+          const d = new Date(event.startAt);
+          const col = dayOfWeekMon(d);
+          return (
+            <div
+              key={event.id}
+              className={cn(
+                "absolute truncate rounded-md px-1 py-0.5 text-[8px] font-medium leading-tight",
+                getEventColor(i),
+              )}
+              style={{
+                left: `calc(24px + ${col * (100 / 7)}%)`,
+                width: `calc(${100 / 7}% - 2px)`,
+                top: `${((d.getHours() + d.getMinutes() / 60) / 24) * 100}%`,
+              }}
+            >
+              {event.title}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────
+// MONTH VIEW — 7 cols, weeks going down
+// ────────────────────────────────────────────
+
+const DAYS_LETTER = ["M", "T", "W", "T", "F", "S", "S"];
+
+function MonthView({ events }: { events: CalendarEvent[] }) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+
+  const firstOfMonth = new Date(year, month, 1);
+  const lastOfMonth = new Date(year, month + 1, 0);
+
+  const startOffset = dayOfWeekMon(firstOfMonth);
+  const calStart = new Date(firstOfMonth);
+  calStart.setDate(calStart.getDate() - startOffset);
+
+  const weeks: Date[][] = [];
+  const cur = new Date(calStart);
+  for (let w = 0; w < 6; w++) {
+    const week: Date[] = [];
+    for (let d = 0; d < 7; d++) {
+      week.push(new Date(cur));
+      cur.setDate(cur.getDate() + 1);
+    }
+    weeks.push(week);
+    if (cur > lastOfMonth && cur.getMonth() !== month) break;
+  }
+
+  const eventsByDate = useMemo(() => {
+    const map = new Map<string, CalendarEvent[]>();
+    for (const ev of events) {
+      const k = dKey(new Date(ev.startAt));
+      const arr = map.get(k) ?? [];
+      arr.push(ev);
+      map.set(k, arr);
+    }
+    return map;
+  }, [events]);
+
+  return (
+    <div className="flex h-full flex-col">
+      {/* Header */}
+      <div className="mb-1 grid grid-cols-7">
+        {DAYS_LETTER.map((n, i) => (
+          <div key={i} className="text-center text-[9px] font-medium text-slate-400">
+            {n}
+          </div>
+        ))}
+      </div>
+      {/* Weeks */}
+      <div className="grid flex-1 auto-rows-fr">
+        {weeks.map((week, wi) => (
+          <div key={wi} className="grid grid-cols-7 border-t border-slate-50">
+            {week.map((day, di) => {
+              const inMonth = day.getMonth() === month;
+              const today = isSameDay(day, now);
+              const dayEvts = eventsByDate.get(dKey(day)) ?? [];
+              return (
+                <div
+                  key={di}
+                  className={cn(
+                    "overflow-hidden px-0.5 py-0.5",
+                    !inMonth && "opacity-25",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "mx-auto mb-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[9px]",
+                      today ? "bg-slate-800 font-bold text-white" : "text-slate-600",
+                    )}
+                  >
+                    {day.getDate()}
+                  </div>
+                  {dayEvts.slice(0, 2).map((ev, i) => (
+                    <div
+                      key={ev.id}
+                      className={cn(
+                        "mb-0.5 truncate rounded-md px-1 text-[8px] font-medium leading-tight",
+                        getEventColor(i),
+                      )}
+                    >
+                      {ev.title}
+                    </div>
+                  ))}
+                  {dayEvts.length > 2 && (
+                    <div className="text-center text-[8px] text-slate-400">
+                      +{dayEvts.length - 2}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────
+// Helpers
+// ────────────────────────────────────────────
+
+function startOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function endOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+}
+
+function isSameDay(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function getMonday(d: Date): Date {
+  const r = new Date(d);
+  const day = r.getDay();
+  r.setDate(r.getDate() - (day === 0 ? 6 : day - 1));
+  r.setHours(0, 0, 0, 0);
+  return r;
+}
+
+function dayOfWeekMon(d: Date): number {
+  const day = d.getDay();
+  return day === 0 ? 6 : day - 1;
+}
+
+function dKey(d: Date): string {
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function formatDateHeader(d: Date): string {
+  return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 }

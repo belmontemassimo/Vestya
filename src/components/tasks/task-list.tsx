@@ -5,7 +5,7 @@ import { CheckSquare } from "lucide-react";
 import { TaskCard } from "@/components/tasks/task-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
-import { Link } from "@/i18n/navigation";
+
 import {
   Select,
   SelectContent,
@@ -52,6 +52,7 @@ interface TaskListProps {
   statusOptions?: readonly FilterOption[];
   priorityOptions?: readonly FilterOption[];
   propertyOptions?: readonly FilterOption[];
+  onAdd?: () => void;
 }
 
 const STATUSES = ["TODO", "IN_PROGRESS", "WAITING", "DONE", "CANCELLED"] as const;
@@ -70,6 +71,7 @@ export function TaskList({
   statusOptions,
   priorityOptions,
   propertyOptions,
+  onAdd,
 }: TaskListProps) {
   const statusFilter = statusFilterProp ?? currentFilters?.status ?? "all";
   const priorityFilter = priorityFilterProp ?? currentFilters?.priority ?? "all";
@@ -132,9 +134,9 @@ export function TaskList({
           title={t("emptyTitle")}
           description={t("emptyDescription")}
           action={
-            <Button asChild>
-              <Link href="/tasks/new">{t("addTask")}</Link>
-            </Button>
+            onAdd ? (
+              <Button onClick={onAdd}>{t("addTask")}</Button>
+            ) : undefined
           }
         />
       ) : (

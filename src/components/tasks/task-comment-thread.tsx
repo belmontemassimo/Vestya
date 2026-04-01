@@ -10,11 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { addTaskComment } from "@/actions/task.actions";
 
 interface Comment {
   id: string;
   content: string;
-  createdAt: Date;
+  createdAt: Date | string;
   user: {
     id: string;
     name: string | null;
@@ -45,23 +46,25 @@ export function TaskCommentThread({
 
     setIsPending(true);
     try {
-      const res = await fetch(`/api/tasks/${taskId}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: trimmed }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        toast.error(data.error ?? t("error"));
-        return;
+      const result = await addTaskComment(taskId, trimmed);
+      if (result.success) {
+        setComments((prev) => [
+          ...prev,
+          {
+            ...result.data,
+            user: {
+              id: currentUserId,
+              name: null,
+              image: null,
+            },
+          },
+        ]);
+        setContent("");
+      } else {
+        toast.error(result.error ?? t("error"));
       }
-
-      const newComment = await res.json();
-      setComments((prev) => [...prev, newComment]);
-      setContent("");
-    } catch {
-      toast.error(t("error"));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("error"));
     } finally {
       setIsPending(false);
     }
@@ -82,12 +85,16 @@ export function TaskCommentThread({
             {comments.map((comment) => {
               const isOwn = comment.user.id === currentUserId;
               const name = comment.user.name ?? t("unknownUser");
+              const createdAt =
+                typeof comment.createdAt === "string"
+                  ? comment.createdAt
+                  : comment.createdAt.toISOString();
               return (
                 <div
                   key={comment.id}
                   className={cn(
                     "flex items-start gap-3",
-                    isOwn && "flex-row-reverse"
+                    isOwn && "flex-row-reverse",
                   )}
                 >
                   <Avatar className="h-8 w-8 shrink-0">
@@ -104,20 +111,17 @@ export function TaskCommentThread({
                       "max-w-[75%] rounded-xl px-4 py-2.5",
                       isOwn
                         ? "bg-blue-600 text-white"
-                        : "bg-slate-100 text-slate-900"
+                        : "bg-slate-100 text-slate-900",
                     )}
                   >
                     <p className="text-sm leading-relaxed">{comment.content}</p>
                     <p
                       className={cn(
                         "mt-1 text-[11px]",
-                        isOwn ? "text-blue-200" : "text-slate-400"
+                        isOwn ? "text-blue-200" : "text-slate-400",
                       )}
                     >
-                      {formatRelativeDate(
-                        comment.createdAt.toISOString(),
-                        locale
-                      )}
+                      {formatRelativeDate(createdAt, locale)}
                     </p>
                   </div>
                 </div>

@@ -2,6 +2,9 @@ import type { LayoutItem } from "react-grid-layout";
 import type { WidgetInstance } from "@/types/dashboard";
 import { nanoid } from "nanoid";
 
+const MIN_W = 4;
+const MIN_H = 4;
+
 export function createDefaultFamilyLayout(): {
   widgets: WidgetInstance[];
   gridLayout: LayoutItem[];
@@ -16,12 +19,12 @@ export function createDefaultFamilyLayout(): {
   ];
 
   const gridLayout: LayoutItem[] = [
-    { i: "w1", x: 0, y: 0, w: 6, h: 3, minW: 4, minH: 2 },
-    { i: "w2", x: 6, y: 0, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: "w3", x: 0, y: 3, w: 4, h: 3, minW: 3, minH: 2 },
-    { i: "w4", x: 4, y: 3, w: 4, h: 3, minW: 3, minH: 2 },
-    { i: "w5", x: 8, y: 4, w: 4, h: 3, minW: 4, minH: 2 },
-    { i: "w6", x: 0, y: 6, w: 4, h: 4, minW: 3, minH: 3 },
+    { i: "w1", x: 0, y: 0, w: 6, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w2", x: 6, y: 0, w: 6, h: 5, minW: MIN_W, minH: MIN_H },
+    { i: "w3", x: 0, y: 4, w: 4, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w4", x: 4, y: 4, w: 4, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w5", x: 8, y: 4, w: 4, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w6", x: 0, y: 8, w: 4, h: 5, minW: MIN_W, minH: MIN_H },
   ];
 
   return { widgets, gridLayout };
@@ -41,12 +44,12 @@ export function createDefaultPropertyLayout(): {
   ];
 
   const gridLayout: LayoutItem[] = [
-    { i: "w1", x: 0, y: 0, w: 6, h: 3, minW: 4, minH: 2 },
-    { i: "w2", x: 6, y: 0, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: "w3", x: 0, y: 3, w: 4, h: 3, minW: 3, minH: 2 },
-    { i: "w4", x: 4, y: 3, w: 8, h: 3, minW: 4, minH: 2 },
-    { i: "w5", x: 0, y: 6, w: 4, h: 3, minW: 3, minH: 2 },
-    { i: "w6", x: 4, y: 6, w: 4, h: 3, minW: 3, minH: 2 },
+    { i: "w1", x: 0, y: 0, w: 6, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w2", x: 6, y: 0, w: 6, h: 5, minW: MIN_W, minH: MIN_H },
+    { i: "w3", x: 0, y: 4, w: 4, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w4", x: 4, y: 4, w: 8, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w5", x: 0, y: 8, w: 4, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w6", x: 4, y: 8, w: 4, h: 4, minW: MIN_W, minH: MIN_H },
   ];
 
   return { widgets, gridLayout };

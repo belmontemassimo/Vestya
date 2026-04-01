@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useRouter } from "@/i18n/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { DocumentList } from "@/components/documents/document-list";
-import { DocumentUploadForm } from "@/components/documents/document-upload-form";
+import { DocumentUploadForm, type TagOption } from "@/components/documents/document-upload-form";
 import { DocumentPreview } from "@/components/documents/document-preview";
 import {
   createDocumentRecord,
@@ -16,31 +16,25 @@ import {
 } from "@/actions/document.actions";
 import { FormDialog } from "@/components/shared/form-dialog";
 
-interface SelectOption {
-  value: string;
-  label: string;
-}
-
 interface DocumentItem {
   id: string;
-  fileName?: string;
-  name?: string;
+  fileName: string;
   mimeType?: string;
+  tags?: unknown;
   property?: { id: string; name: string } | null;
   uploader?: { id: string; name: string | null };
   createdAt: Date | string;
   sizeBytes?: number;
-  fileSize?: number;
 }
 
 interface DocumentsPageClientProps {
   documents: readonly DocumentItem[];
-  properties: readonly SelectOption[];
+  tagOptions: readonly TagOption[];
 }
 
 export function DocumentsPageClient({
   documents,
-  properties,
+  tagOptions,
 }: DocumentsPageClientProps) {
   const t = useTranslations("documents");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -53,23 +47,19 @@ export function DocumentsPageClient({
 
   async function handleCreateRecord(values: {
     name: string;
-    propertyId: string;
-    category?: string;
+    tags: Array<{ id: string; label: string; type: string }>;
     fileName: string;
     fileType: string;
     fileSize: number;
   }) {
     const result = await createDocumentRecord({
-      fileName: values.fileName,
+      fileName: values.name,
       mimeType: values.fileType,
       sizeBytes: values.fileSize,
-      propertyId: values.propertyId || undefined,
+      tags: values.tags,
     });
     if (result.success) {
-      return {
-        success: true,
-        uploadUrl: result.data.uploadUrl,
-      };
+      return { success: true, uploadUrl: result.data.uploadUrl };
     }
     return { success: false, error: result.error };
   }
@@ -93,7 +83,7 @@ export function DocumentsPageClient({
     if (result.success) {
       setPreviewDoc({
         url: result.data.downloadUrl,
-        name: doc.fileName ?? doc.name ?? "Document",
+        name: doc.fileName,
         mimeType: doc.mimeType ?? "",
       });
     } else {
@@ -133,7 +123,7 @@ export function DocumentsPageClient({
 
       <FormDialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen} title={t("uploadDocument")}>
         <DocumentUploadForm
-          properties={properties}
+          tagOptions={tagOptions}
           onCreateRecord={handleCreateRecord}
           onComplete={handleComplete}
         />
@@ -141,9 +131,7 @@ export function DocumentsPageClient({
 
       <DocumentPreview
         open={!!previewDoc}
-        onOpenChange={(open) => {
-          if (!open) setPreviewDoc(null);
-        }}
+        onOpenChange={(open) => { if (!open) setPreviewDoc(null); }}
         url={previewDoc?.url ?? ""}
         name={previewDoc?.name ?? ""}
         mimeType={previewDoc?.mimeType ?? ""}

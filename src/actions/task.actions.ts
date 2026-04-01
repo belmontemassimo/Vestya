@@ -118,6 +118,46 @@ export async function updateTask(
   }
 }
 
+export async function toggleTaskDone(
+  id: string,
+): Promise<ActionResult<Task>> {
+  try {
+    const session = await requireFamilyAuth();
+    checkPermission(session.user.familyRole, "task:update");
+
+    const task = await prisma.task.findFirst({
+      where: { id, familyId: session.user.familyId, deletedAt: null },
+    });
+
+    if (!task) {
+      return { success: false, error: "Task not found." };
+    }
+
+    const isDone = task.status === "DONE";
+    const updated = await prisma.task.update({
+      where: { id },
+      data: {
+        status: isDone ? "TODO" : "DONE",
+        completedAt: isDone ? null : new Date(),
+      },
+    });
+
+    await logActivity({
+      familyId: session.user.familyId,
+      userId: session.user.id,
+      entityType: "task",
+      entityId: id,
+      action: isDone ? "reopened" : "completed",
+      metadata: { title: task.title },
+    });
+
+    revalidatePath("/");
+    return { success: true, data: serializeTask(updated) };
+  } catch (error) {
+    return handleActionError(error);
+  }
+}
+
 export async function deleteTask(
   id: string,
 ): Promise<ActionResult<{ deleted: true }>> {

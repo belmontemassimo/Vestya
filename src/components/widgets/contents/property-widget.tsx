@@ -1,8 +1,5 @@
 "use client";
 
-import { MapPin as MapPinIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { Badge } from "@/components/ui/badge";
 import { MapPin } from "@/components/widgets/contents/map-pin";
 
 interface PropertyWidgetProps {
@@ -26,43 +23,19 @@ export function PropertyWidget({
   displayMode = "map",
   coverImage,
 }: PropertyWidgetProps) {
-  const tProps = useTranslations("properties");
-
-  const location = [property.city, property.country]
-    .filter(Boolean)
-    .join(", ");
-
   const hasCoordinates =
     property.latitude != null && property.longitude != null;
 
   const resolvedCoverImage =
     coverImage ?? getFirstImage(property.images);
 
+  const showImage = displayMode === "image" && resolvedCoverImage;
+
   return (
-    <div className="space-y-3">
-      <div>
-        <h3 className="text-sm font-semibold text-slate-800">
-          {property.name}
-        </h3>
-        {location && (
-          <div className="mt-0.5 flex items-center gap-1 text-xs text-slate-400">
-            <MapPinIcon className="h-3 w-3" />
-            {location}
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2">
-        <Badge variant="outline" className="text-[10px]">
-          {tProps(`type.${property.propertyType}`)}
-        </Badge>
-        <Badge variant="secondary" className="text-[10px]">
-          {tProps(`status.${property.status}`)}
-        </Badge>
-      </div>
-
-      <div className="h-32 overflow-hidden rounded-lg">
-        {displayMode === "image" && resolvedCoverImage ? (
+    <div className="relative h-full w-full">
+      {/* Background: image, map, or fallback */}
+      <div className="absolute inset-0">
+        {showImage ? (
           /* eslint-disable-next-line @next/next/no-img-element -- user-uploaded cover */
           <img
             src={resolvedCoverImage}
@@ -77,10 +50,28 @@ export function PropertyWidget({
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-slate-100 text-xs text-slate-400">
-            No coordinates available
+            No location
           </div>
         )}
       </div>
+
+      {/* Name overlay — uses a scrim for contrast */}
+      {(showImage || hasCoordinates) && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-black/50 to-transparent px-4 pb-8 pt-3">
+          <h3 className="text-sm font-bold text-white drop-shadow-sm">
+            {property.name}
+          </h3>
+        </div>
+      )}
+
+      {/* Fallback name (no image/map — dark text on light bg) */}
+      {!showImage && !hasCoordinates && (
+        <div className="absolute left-4 top-3">
+          <h3 className="text-sm font-bold text-slate-800">
+            {property.name}
+          </h3>
+        </div>
+      )}
     </div>
   );
 }

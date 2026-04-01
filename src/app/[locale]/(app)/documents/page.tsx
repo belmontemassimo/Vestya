@@ -1,12 +1,13 @@
 import { requireFamilyAuth } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import { DocumentsPageClient } from "@/components/documents/documents-page-client";
+import type { TagOption } from "@/components/documents/document-upload-form";
 
 export default async function DocumentsPage() {
   const session = await requireFamilyAuth();
   const { familyId } = session.user;
 
-  const [documents, properties] = await Promise.all([
+  const [documents, properties, memberships, contacts] = await Promise.all([
     prisma.document.findMany({
       where: { familyId, deletedAt: null },
       include: {
@@ -20,17 +21,31 @@ export default async function DocumentsPage() {
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
+    prisma.familyMembership.findMany({
+      where: { familyId, status: "ACTIVE" },
+      include: { user: { select: { id: true, name: true } } },
+    }),
+    prisma.contact.findMany({
+      where: { familyId, deletedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
-  const propertyOptions = properties.map((p) => ({
-    value: p.id,
-    label: p.name,
-  }));
+  const tagOptions: TagOption[] = [
+    ...properties.map((p) => ({ value: p.id, label: p.name, type: "property" as const })),
+    ...memberships.map((m) => ({
+      value: m.user.id,
+      label: m.user.name ?? m.user.id,
+      type: "member" as const,
+    })),
+    ...contacts.map((c) => ({ value: c.id, label: c.name, type: "contact" as const })),
+  ];
 
   return (
     <DocumentsPageClient
       documents={documents}
-      properties={propertyOptions}
+      tagOptions={tagOptions}
     />
   );
 }

@@ -1,8 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import type { WidgetInstance, DashboardData } from "@/types/dashboard";
-import { WIDGET_REGISTRY } from "@/config/widget-registry";
 import { WidgetContainer } from "./widget-container";
 import { TasksWidget } from "./contents/tasks-widget";
 import { CalendarWidget } from "./contents/calendar-widget";
@@ -26,24 +24,9 @@ interface WidgetRendererProps {
   propertyId?: string;
   isEditing: boolean;
   onRemove: () => void;
+  gridW: number;
+  gridH: number;
 }
-
-const ACCENT_MAP: Record<string, string> = {
-  tasks: "blue",
-  "property-tasks": "blue",
-  calendar: "indigo",
-  "property-calendar": "indigo",
-  "family-members": "green",
-  "family-contacts": "green",
-  "property-contacts": "green",
-  messages: "purple",
-  "upcoming-reminders": "amber",
-  "property-reminders": "amber",
-  "family-paperwork": "slate",
-  "property-documents": "slate",
-  property: "orange",
-  spending: "orange",
-};
 
 const HREF_MAP: Record<
   string,
@@ -72,35 +55,31 @@ export function WidgetRenderer({
   propertyId,
   isEditing,
   onRemove,
+  gridW,
+  gridH,
 }: WidgetRendererProps) {
-  const t = useTranslations("widgets");
-  const def = WIDGET_REGISTRY[widget.type];
-
   const hrefEntry = HREF_MAP[widget.type];
   const href =
     typeof hrefEntry === "function"
       ? hrefEntry(widget, propertyId)
       : hrefEntry;
 
-  const titleKey = def.titleKey.replace("widgets.", "");
-  const title = t(titleKey as Parameters<typeof t>[0]);
-
-  const accentColor = ACCENT_MAP[widget.type];
+  const isBleed = widget.type === "property";
 
   return (
     <WidgetContainer
-      title={title}
-      icon={def.icon}
       href={href}
       isEditing={isEditing}
       onRemove={onRemove}
-      accentColor={accentColor}
+      bleed={isBleed}
     >
       <WidgetContent
         widget={widget}
         dashboardData={dashboardData}
         context={context}
         propertyId={propertyId}
+        gridW={gridW}
+        gridH={gridH}
       />
     </WidgetContainer>
   );
@@ -109,35 +88,42 @@ export function WidgetRenderer({
 function WidgetContent({
   widget,
   dashboardData,
+  context,
+  propertyId,
+  gridW,
+  gridH,
 }: {
   widget: WidgetInstance;
   dashboardData: Record<string, unknown>;
   context: "family" | "property";
   propertyId?: string;
+  gridW: number;
+  gridH: number;
 }) {
   const d = dashboardData as unknown as DashboardData;
+  const pid = context === "property" ? propertyId : undefined;
 
   switch (widget.type) {
     case "tasks":
-      return <TasksWidget tasks={d.tasks ?? []} />;
+      return <TasksWidget tasks={d.tasks ?? []} propertyId={pid} />;
 
     case "property-tasks":
-      return <PropertyTasksWidget tasks={d.tasks ?? []} />;
+      return <PropertyTasksWidget tasks={d.tasks ?? []} propertyId={pid} />;
 
     case "calendar":
-      return <CalendarWidget events={d.events ?? []} />;
+      return <CalendarWidget events={d.events ?? []} gridW={gridW} gridH={gridH} propertyId={pid} />;
 
     case "property-calendar":
-      return <PropertyCalendarWidget events={d.events ?? []} />;
+      return <PropertyCalendarWidget events={d.events ?? []} gridW={gridW} gridH={gridH} propertyId={pid} />;
 
     case "family-members":
       return <FamilyMembersWidget members={d.members ?? []} />;
 
     case "family-contacts":
-      return <FamilyContactsWidget contacts={d.contacts ?? []} />;
+      return <FamilyContactsWidget contacts={d.contacts ?? []} propertyId={pid} />;
 
     case "property-contacts":
-      return <PropertyContactsWidget contacts={d.contacts ?? []} />;
+      return <PropertyContactsWidget contacts={d.contacts ?? []} propertyId={pid} />;
 
     case "messages":
       return <MessagesWidget messages={d.messages ?? []} />;
@@ -149,10 +135,10 @@ function WidgetContent({
       return <PropertyRemindersWidget reminders={d.reminders ?? []} />;
 
     case "family-paperwork":
-      return <DocumentsWidget documents={d.documents ?? []} />;
+      return <DocumentsWidget documents={d.documents ?? []} propertyId={pid} />;
 
     case "property-documents":
-      return <PropertyDocumentsWidget documents={d.documents ?? []} />;
+      return <PropertyDocumentsWidget documents={d.documents ?? []} propertyId={pid} />;
 
     case "property": {
       const properties = d.properties ?? [];
@@ -179,7 +165,9 @@ function WidgetContent({
         <SpendingWidget
           totalExpenses={d.totalExpenses ?? 0}
           totalIncome={d.totalIncome ?? 0}
+          records={d.financialRecords ?? []}
           currency={d.currency}
+          propertyId={pid}
         />
       );
 

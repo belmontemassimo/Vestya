@@ -71,6 +71,7 @@ export function ContactsPageClient({
         contacts={contacts}
         categoryFilter={currentCategory ?? "all"}
         onCategoryChange={handleCategoryChange}
+        onAdd={() => setDialogOpen(true)}
       />
 
       <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title={t("addContact")}>

@@ -82,6 +82,7 @@ export function TasksPageClient({
         onStatusChange={(v) => updateFilter("status", v)}
         onPriorityChange={(v) => updateFilter("priority", v)}
         onPropertyChange={(v) => updateFilter("propertyId", v)}
+        onAdd={() => setDialogOpen(true)}
       />
 
       <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title={t("addTask")}>

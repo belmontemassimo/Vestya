@@ -100,4 +100,13 @@ export interface DashboardData {
   totalExpenses?: number;
   totalIncome?: number;
   currency?: string;
+  financialRecords?: Array<{
+    id: string;
+    category: string;
+    amount: number;
+    currency: string;
+    recordType: string;
+    date: string;
+    notes: string | null;
+  }>;
 }

@@ -34,6 +34,7 @@ export default async function PropertyDetailPage({
     documents,
     expenses,
     income,
+    financialRecords,
     reminders,
   ] = await Promise.all([
     getPropertyDashboard(propertyId),
@@ -99,6 +100,21 @@ export default async function PropertyDetailPage({
       _sum: { amount: true },
     }),
 
+    prisma.financialRecord.findMany({
+      where: { propertyId, deletedAt: null },
+      select: {
+        id: true,
+        category: true,
+        amount: true,
+        currency: true,
+        recordType: true,
+        date: true,
+        notes: true,
+      },
+      orderBy: { date: "desc" },
+      take: 10,
+    }),
+
     prisma.reminder.findMany({
       where: {
         propertyId,
@@ -139,6 +155,11 @@ export default async function PropertyDetailPage({
     documents: JSON.parse(JSON.stringify(documents)),
     totalExpenses: Number(expenses._sum.amount ?? 0),
     totalIncome: Number(income._sum.amount ?? 0),
+    financialRecords: financialRecords.map((r) => ({
+      ...r,
+      amount: Number(r.amount),
+      date: r.date.toISOString(),
+    })),
     reminders: JSON.parse(JSON.stringify(reminders)),
   };
 

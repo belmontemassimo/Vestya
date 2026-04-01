@@ -63,26 +63,31 @@ export function DashboardGrid({
           className="layout"
           width={width}
           layouts={layouts}
-          cols={{ lg: 12, md: 8, sm: 4, xs: 2 }}
-          rowHeight={100}
+          cols={{ lg: 12, md: 12, sm: 12, xs: 12 }}
+          rowHeight={80}
           containerPadding={[0, 0]}
           margin={[16, 16]}
           dragConfig={{ enabled: isEditing, handle: ".widget-drag-handle" }}
           resizeConfig={{ enabled: isEditing, handles: ["se"] }}
           onLayoutChange={handleLayoutChange}
         >
-          {widgets.map((widget) => (
-            <div key={widget.id}>
-              <WidgetRenderer
-                widget={widget}
-                dashboardData={dashboardData}
-                context={context}
-                propertyId={propertyId}
-                isEditing={isEditing}
-                onRemove={() => onRemoveWidget(widget.id)}
-              />
-            </div>
-          ))}
+          {widgets.map((widget) => {
+            const item = gridLayout.find((l) => l.i === widget.id);
+            return (
+              <div key={widget.id}>
+                <WidgetRenderer
+                  widget={widget}
+                  dashboardData={dashboardData}
+                  context={context}
+                  propertyId={propertyId}
+                  isEditing={isEditing}
+                  onRemove={() => onRemoveWidget(widget.id)}
+                  gridW={item?.w ?? 4}
+                  gridH={item?.h ?? 3}
+                />
+              </div>
+            );
+          })}
         </ResponsiveGridLayout>
       )}
     </div>

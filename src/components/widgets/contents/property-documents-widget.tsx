@@ -1,8 +1,13 @@
 "use client";
 
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { FileText } from "lucide-react";
-import { useLocale } from "next-intl";
-import { formatDateShort } from "@/lib/utils";
+import { WidgetHeader } from "@/components/widgets/widget-header";
+import { FormDialog } from "@/components/shared/form-dialog";
+import { DocumentUploadForm } from "@/components/documents/document-upload-form";
+import { createDocumentRecord } from "@/actions/document.actions";
 
 interface PropertyDocumentsWidgetProps {
   documents: Array<{
@@ -11,58 +16,65 @@ interface PropertyDocumentsWidgetProps {
     mimeType: string;
     createdAt: string;
   }>;
+  propertyId?: string;
 }
 
-function getFileIcon(mimeType: string): string {
-  if (mimeType.startsWith("image/")) return "img";
-  if (mimeType === "application/pdf") return "pdf";
-  if (mimeType.includes("spreadsheet") || mimeType.includes("excel"))
-    return "xls";
-  if (mimeType.includes("document") || mimeType.includes("word")) return "doc";
-  return "file";
-}
+export function PropertyDocumentsWidget({ documents, propertyId }: PropertyDocumentsWidgetProps) {
+  const t = useTranslations("documents");
+  const router = useRouter();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-export function PropertyDocumentsWidget({
-  documents,
-}: PropertyDocumentsWidgetProps) {
-  const locale = useLocale();
-  const visible = documents.slice(0, 5);
+  async function handleCreateRecord(values: {
+    name: string;
+    tags: Array<{ id: string; label: string; type: string }>;
+    fileName: string;
+    fileType: string;
+    fileSize: number;
+  }) {
+    const result = await createDocumentRecord({
+      fileName: values.name,
+      mimeType: values.fileType,
+      sizeBytes: values.fileSize,
+      tags: values.tags,
+      propertyId,
+    });
+    if (result.success) {
+      return { success: true, uploadUrl: result.data.uploadUrl };
+    }
+    return { success: false, error: result.error };
+  }
 
-  if (visible.length === 0) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center gap-2 text-slate-400">
-        <FileText className="h-8 w-8" />
-        <p className="text-sm">No documents</p>
-      </div>
-    );
+  function handleComplete() {
+    setDialogOpen(false);
+    router.refresh();
   }
 
   return (
-    <div className="space-y-2">
-      {visible.map((doc) => (
-        <div
-          key={doc.id}
-          className="flex items-center gap-3 rounded-lg border border-slate-100 p-2.5"
-        >
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
-            <FileText className="h-4 w-4" />
+    <>
+      <div className="flex h-full flex-col">
+        <WidgetHeader title={t("title")} onAdd={() => setDialogOpen(true)} addLabel={t("upload")} />
+        {documents.length === 0 ? (
+          <p className="text-xs italic text-slate-400">{t("emptyTitle")}</p>
+        ) : (
+          <div className="space-y-1.5 overflow-y-auto">
+            {documents.slice(0, 8).map((doc) => (
+              <div key={doc.id} className="flex items-center gap-2 rounded-lg bg-slate-50 px-2.5 py-2">
+                <FileText className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                <span className="min-w-0 flex-1 truncate text-xs font-medium text-slate-700">
+                  {doc.fileName}
+                </span>
+              </div>
+            ))}
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-slate-900">
-              {doc.fileName}
-            </p>
-            <p className="text-xs text-slate-400">
-              {getFileIcon(doc.mimeType).toUpperCase()} &middot;{" "}
-              {formatDateShort(doc.createdAt, locale)}
-            </p>
-          </div>
-        </div>
-      ))}
-      {documents.length > 5 && (
-        <p className="text-center text-xs text-slate-400">
-          +{documents.length - 5} more
-        </p>
-      )}
-    </div>
+        )}
+      </div>
+      <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title={t("uploadDocument")}>
+        <DocumentUploadForm
+          tagOptions={[]}
+          onCreateRecord={handleCreateRecord}
+          onComplete={handleComplete}
+        />
+      </FormDialog>
+    </>
   );
 }

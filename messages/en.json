@@ -24,7 +24,9 @@
     "showing": "Showing {count} of {total}",
     "error": "Something went wrong",
     "success": "Success",
-    "or": "or"
+    "or": "or",
+    "signOut": "Sign Out",
+    "confirm": "Confirm"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -75,7 +77,10 @@
     "acceptInviteTitle": "You've been invited",
     "acceptInviteSubtitle": "Join {familyName} on Hestia",
     "inviteExpired": "This invitation has expired",
-    "inviteAccepted": "You've joined {familyName}!"
+    "inviteAccepted": "You've joined {familyName}!",
+    "acceptInvitation": "Accept Invitation",
+    "unexpectedError": "An unexpected error occurred.",
+    "joinFamily": "Join Family"
   },
   "onboarding": {
     "title": "Welcome to Hestia",
@@ -109,7 +114,12 @@
     "totalProperties": "Properties",
     "openTasks": "Open Tasks",
     "monthlySpending": "Monthly Spending",
-    "upcomingReminders": "Upcoming Reminders"
+    "upcomingReminders": "Upcoming Reminders",
+    "expenses": "Expenses",
+    "income": "Income",
+    "noUpcomingEvents": "No upcoming events",
+    "noRecentTasks": "No recent tasks",
+    "noRecentActivity": "No recent activity"
   },
   "properties": {
     "title": "Properties",
@@ -157,8 +167,17 @@
       "documents": "Documents",
       "spending": "Spending",
       "occupancy": "Occupancy",
-      "calendar": "Calendar"
-    }
+      "calendar": "Calendar",
+      "financials": "Financials",
+      "occupancies": "Occupancies"
+    },
+    "emptyTitle": "No properties",
+    "emptyDescription": "Add your first property to get started.",
+    "noTasks": "No tasks for this property",
+    "noContacts": "No contacts linked",
+    "noDocuments": "No documents",
+    "noFinancials": "No financial records",
+    "noOccupancies": "No occupancy records"
   },
   "tasks": {
     "title": "Tasks",
@@ -216,7 +235,14 @@
       "DONE": "Done",
       "CANCELLED": "Cancelled"
     },
-    "categoryLabel": "Category"
+    "categoryLabel": "Category",
+    "estimatedCost": "Estimated Cost",
+    "actualCost": "Actual Cost",
+    "comments": "Comments",
+    "noComments": "No comments yet",
+    "addComment": "Write a comment...",
+    "taskDetails": "Task Details",
+    "unknownUser": "Unknown"
   },
   "contacts": {
     "title": "Contacts",
@@ -265,7 +291,12 @@
       "ROOFER": "Roofer",
       "PAINTER": "Painter",
       "OTHER": "Other"
-    }
+    },
+    "contactInfo": "Contact Info",
+    "linkedProperties": "Linked Properties",
+    "assignedTasks": "Assigned Tasks",
+    "noTasks": "No tasks assigned",
+    "financialHistory": "Financial History"
   },
   "calendar": {
     "title": "Calendar",
@@ -329,7 +360,10 @@
     "uploadError": "Failed to upload the file. Please try again.",
     "dropOrClick": "Drag and drop a file, or click to browse.",
     "selectFile": "Select File",
-    "uploading": "Uploading..."
+    "uploading": "Uploading...",
+    "tags": "Tags",
+    "noTagsAvailable": "No properties or members to tag.",
+    "selectTags": "Select tags..."
   },
   "spending": {
     "title": "Spending",
@@ -425,7 +459,15 @@
     "changePassword": "Change Password",
     "dangerZone": "Danger Zone",
     "deleteFamily": "Delete Family",
-    "language": "Language"
+    "language": "Language",
+    "profileDescription": "Update your personal information.",
+    "profileUpdated": "Profile updated!",
+    "email": "Email",
+    "emailReadOnly": "Email cannot be changed.",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "passwordChanged": "Password changed!",
+    "updatePassword": "Update Password"
   },
   "activity": {
     "title": "Activity Log",

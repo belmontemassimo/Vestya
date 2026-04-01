@@ -103,7 +103,7 @@ export function TaskDetail({ task }: TaskDetailProps) {
           <div className="flex items-start gap-2">
             <Tag className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
             <div>
-              <p className="text-xs text-slate-400">{t("category")}</p>
+              <p className="text-xs text-slate-400">{t("categoryLabel")}</p>
               <Badge variant="outline">{t(`category.${task.category}`)}</Badge>
             </div>
           </div>

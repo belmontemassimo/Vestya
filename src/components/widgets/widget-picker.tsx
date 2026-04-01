@@ -54,7 +54,8 @@ export function WidgetPicker({
   }
 
   function handleWidgetClick(type: WidgetType, hasConfig: boolean) {
-    if (existingWidgetTypes.includes(type) && type !== "property") return;
+    const allowDuplicates = type === "property" || type === "calendar" || type === "property-calendar";
+    if (existingWidgetTypes.includes(type) && !allowDuplicates) return;
 
     if (hasConfig && type === "property") {
       setStep("selectProperty");
@@ -243,9 +244,10 @@ export function WidgetPicker({
         {step === "widgets" && (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {availableWidgets.map((def) => {
+              const canDuplicate = def.type === "property" || def.type === "calendar" || def.type === "property-calendar";
               const isAdded =
                 existingWidgetTypes.includes(def.type) &&
-                def.type !== "property";
+                !canDuplicate;
               const Icon = def.icon;
               const titleKey = def.titleKey.replace("widgets.", "");
 
