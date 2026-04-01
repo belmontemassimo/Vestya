@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "@/i18n/navigation";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -73,7 +72,6 @@ interface PricingClientProps {
 }
 
 export function PricingClient({ currentPlan }: PricingClientProps) {
-  const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
 
   async function handleSelectPlan(plan: string) {
