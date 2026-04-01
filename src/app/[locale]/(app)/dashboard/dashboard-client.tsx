@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import type { LayoutItem } from "react-grid-layout";
@@ -23,8 +24,25 @@ export function DashboardClient({
   dashboardData,
 }: DashboardClientProps) {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
   const t = useTranslations("dashboard");
   const tWidgets = useTranslations("widgets");
+
+  // Sync subscription after successful checkout redirect
+  useEffect(() => {
+    if (searchParams.get("upgraded") === "true") {
+      fetch("/api/stripe/sync", { method: "POST" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.synced) {
+            toast.success("Subscription upgraded!");
+          }
+        })
+        .catch(() => {});
+      // Clean URL
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [searchParams]);
 
   const fallback = createDefaultFamilyLayout();
   const layout = initialLayout ?? fallback;
