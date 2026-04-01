@@ -10,6 +10,7 @@ import {
   UserPlus,
   Settings,
   MessageSquare,
+  CreditCard,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -74,6 +75,11 @@ export const bottomNavItems: NavItem[] = [
     titleKey: "nav.members",
     href: "/members",
     icon: UserPlus,
+  },
+  {
+    titleKey: "nav.subscription",
+    href: "/pricing",
+    icon: CreditCard,
   },
   {
     titleKey: "nav.settings",
