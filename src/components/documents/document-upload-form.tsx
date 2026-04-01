@@ -122,9 +122,11 @@ export function DocumentUploadForm({
 
       await new Promise<void>((resolve, reject) => {
         xhr.addEventListener("load", () => {
-          xhr.status >= 200 && xhr.status < 300
-            ? resolve()
-            : reject(new Error(`Upload failed: ${xhr.status}`));
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            reject(new Error(`Upload failed: ${xhr.status}`));
+          }
         });
         xhr.addEventListener("error", () => reject(new Error("Upload failed")));
         xhr.open("PUT", result.uploadUrl!);

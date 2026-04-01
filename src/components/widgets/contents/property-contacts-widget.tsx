@@ -25,7 +25,7 @@ function firstOf(arr: unknown): string | null {
   return null;
 }
 
-export function PropertyContactsWidget({ contacts, propertyId }: PropertyContactsWidgetProps) {
+export function PropertyContactsWidget({ contacts }: PropertyContactsWidgetProps) {
   const t = useTranslations("contacts");
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);

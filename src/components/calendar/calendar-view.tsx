@@ -37,7 +37,7 @@ export function CalendarView({
   onEventClick,
 }: CalendarViewProps) {
   const t = useTranslations("calendar");
-  const today = new Date();
+  const [today] = useState(() => new Date());
   const [viewDate, setViewDate] = useState(
     () => new Date(today.getFullYear(), today.getMonth(), 1),
   );
