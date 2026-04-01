@@ -1,0 +1,765 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum FamilyRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum PropertyType {
+  HOUSE
+  APARTMENT
+  CONDO
+  VILLA
+  CABIN
+  LAND
+  COMMERCIAL
+  OTHER
+}
+
+enum PropertyStatus {
+  ACTIVE
+  INACTIVE
+  FOR_SALE
+  FOR_RENT
+  UNDER_RENOVATION
+  ARCHIVED
+}
+
+enum ContactCategory {
+  PLUMBER
+  ELECTRICIAN
+  GARDENER
+  CLEANER
+  HANDYMAN
+  REAL_ESTATE_AGENT
+  NOTARY
+  LAWYER
+  INSURANCE
+  PROPERTY_MANAGER
+  TENANT
+  NEIGHBOR
+  CONTRACTOR
+  ARCHITECT
+  LOCKSMITH
+  PEST_CONTROL
+  HVAC
+  ROOFER
+  PAINTER
+  OTHER
+}
+
+enum TaskCategory {
+  MAINTENANCE
+  REPAIR
+  INSPECTION
+  CLEANING
+  RENOVATION
+  ADMINISTRATIVE
+  FINANCIAL
+  INSURANCE
+  LEGAL
+  SEASONAL
+  EMERGENCY
+  OTHER
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  WAITING
+  DONE
+  CANCELLED
+}
+
+enum VisibilityLevel {
+  FAMILY
+  OWNERS_ONLY
+  ADMINS_ONLY
+  PRIVATE
+}
+
+enum FinancialCategory {
+  MORTGAGE
+  INSURANCE
+  TAX
+  UTILITY
+  MAINTENANCE
+  REPAIR
+  RENOVATION
+  RENT_INCOME
+  MANAGEMENT_FEE
+  HOA_FEE
+  FURNISHING
+  LEGAL
+  SALARY
+  OTHER
+}
+
+enum RecordType {
+  EXPENSE
+  INCOME
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+enum OccupancyType {
+  OWNER_OCCUPIED
+  RENTED
+  VACANT
+  SEASONAL
+  GUEST
+  UNDER_RENOVATION
+}
+
+enum ReminderChannel {
+  EMAIL
+  IN_APP
+}
+
+enum ReminderStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+// ============================================================
+// AUTH.JS (NextAuth v5) MODELS
+// ============================================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  passwordHash  String?   @map("password_hash")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  accounts       Account[]
+  sessions       Session[]
+  authenticators Authenticator[]
+
+  memberships       FamilyMembership[]
+  createdFamilies   Family[]           @relation("FamilyCreator")
+  assignedTasks     Task[]             @relation("TaskAssignee")
+  createdTasks      Task[]             @relation("TaskCreator")
+  taskComments      TaskComment[]
+  createdEvents     Event[]            @relation("EventCreator")
+  uploadedDocuments Document[]
+  createdFinancials FinancialRecord[]  @relation("FinancialCreator")
+  reminders         Reminder[]         @relation("ReminderRecipient")
+  notifications     Notification[]
+  activityLogs      ActivityLog[]
+  sentInvitations   FamilyInvitation[] @relation("InvitationSender")
+  dashboardLayouts  DashboardLayout[]
+  messages          Message[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Authenticator {
+  credentialID         String  @unique @map("credential_id")
+  userId               String  @map("user_id")
+  providerAccountId    String  @map("provider_account_id")
+  credentialPublicKey  String  @map("credential_public_key")
+  counter              Int
+  credentialDeviceType String  @map("credential_device_type")
+  credentialBackedUp   Boolean @map("credential_backed_up")
+  transports           String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, credentialID])
+  @@map("authenticators")
+}
+
+// ============================================================
+// FAMILY & MEMBERSHIP
+// ============================================================
+
+model Family {
+  id        String @id @default(cuid())
+  name      String
+  slug      String @unique
+  createdBy String @map("created_by")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  creator          User               @relation("FamilyCreator", fields: [createdBy], references: [id])
+  memberships      FamilyMembership[]
+  invitations      FamilyInvitation[]
+  properties       Property[]
+  contacts         Contact[]
+  tasks            Task[]
+  events           Event[]
+  documents        Document[]
+  financials       FinancialRecord[]
+  occupancies      OccupancyRecord[]
+  reminders        Reminder[]
+  notifications    Notification[]
+  activityLogs     ActivityLog[]
+  dashboardLayouts DashboardLayout[]
+  messages         Message[]
+
+  @@index([createdBy])
+  @@map("families")
+}
+
+model FamilyMembership {
+  id       String           @id @default(cuid())
+  familyId String           @map("family_id")
+  userId   String           @map("user_id")
+  role     FamilyRole       @default(MEMBER)
+  status   MembershipStatus @default(ACTIVE)
+  joinedAt DateTime         @default(now()) @map("joined_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, userId])
+  @@index([familyId])
+  @@index([userId])
+  @@index([status])
+  @@map("family_memberships")
+}
+
+model FamilyInvitation {
+  id        String           @id @default(cuid())
+  familyId  String           @map("family_id")
+  email     String
+  role      FamilyRole       @default(MEMBER)
+  token     String           @unique
+  status    InvitationStatus @default(PENDING)
+  invitedBy String           @map("invited_by")
+  expiresAt DateTime         @map("expires_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  family  Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  inviter User   @relation("InvitationSender", fields: [invitedBy], references: [id])
+
+  @@index([familyId])
+  @@index([email])
+  @@index([token])
+  @@index([status])
+  @@map("family_invitations")
+}
+
+// ============================================================
+// PROPERTY
+// ============================================================
+
+model Property {
+  id           String         @id @default(cuid())
+  familyId     String         @map("family_id")
+  name         String
+  addressLine1 String?        @map("address_line1")
+  addressLine2 String?        @map("address_line2")
+  city         String?
+  region       String?
+  postalCode   String?        @map("postal_code")
+  country      String?
+  timezone     String?
+  propertyType PropertyType   @default(HOUSE) @map("property_type")
+  status       PropertyStatus @default(ACTIVE)
+  notes        String?        @db.Text
+  images       Json?          @default("[]")
+  latitude     Float?
+  longitude    Float?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  family           Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  propertyContacts PropertyContact[]
+  tasks            Task[]
+  events           Event[]
+  documents        Document[]
+  financials       FinancialRecord[]
+  occupancies      OccupancyRecord[]
+  reminders        Reminder[]
+  dashboardLayouts DashboardLayout[]
+
+  @@index([familyId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("properties")
+}
+
+// ============================================================
+// CONTACT
+// ============================================================
+
+model Contact {
+  id       String          @id @default(cuid())
+  familyId String          @map("family_id")
+  name     String
+  company  String?
+  category ContactCategory @default(OTHER)
+  phones   Json?           @default("[]")
+  emails   Json?           @default("[]")
+  whatsapp String?
+  address  String?         @db.Text
+  notes    String?         @db.Text
+  tags     Json?           @default("[]")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  family            Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  propertyContacts  PropertyContact[]
+  assignedTasks     Task[]            @relation("TaskAssignedContact")
+  linkedEvents      Event[]           @relation("EventLinkedContact")
+  paidFinancials    FinancialRecord[] @relation("FinancialPaidToContact")
+  linkedOccupancies OccupancyRecord[] @relation("OccupancyLinkedContact")
+
+  @@index([familyId])
+  @@index([category])
+  @@index([deletedAt])
+  @@map("contacts")
+}
+
+model PropertyContact {
+  id               String @id @default(cuid())
+  propertyId       String @map("property_id")
+  contactId        String @map("contact_id")
+  relationshipType String @map("relationship_type")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  contact  Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, contactId, relationshipType])
+  @@index([propertyId])
+  @@index([contactId])
+  @@map("property_contacts")
+}
+
+// ============================================================
+// TASK
+// ============================================================
+
+model Task {
+  id              String       @id @default(cuid())
+  familyId        String       @map("family_id")
+  propertyId      String?      @map("property_id")
+  title           String
+  description     String?      @db.Text
+  category        TaskCategory @default(OTHER)
+  priority        TaskPriority @default(MEDIUM)
+  status          TaskStatus   @default(TODO)
+  assignedTo      String?      @map("assigned_to")
+  assignedContact String?      @map("assigned_contact")
+  dueAt           DateTime?    @map("due_at")
+  recurrenceRule  String?      @map("recurrence_rule")
+  estimatedCost   Decimal?     @map("estimated_cost") @db.Decimal(12, 2)
+  actualCost      Decimal?     @map("actual_cost") @db.Decimal(12, 2)
+  createdBy       String       @map("created_by")
+  completedAt     DateTime?    @map("completed_at")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  family          Family        @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  property        Property?     @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  assignee        User?         @relation("TaskAssignee", fields: [assignedTo], references: [id], onDelete: SetNull)
+  contactAssignee Contact?      @relation("TaskAssignedContact", fields: [assignedContact], references: [id], onDelete: SetNull)
+  creator         User          @relation("TaskCreator", fields: [createdBy], references: [id])
+  comments        TaskComment[]
+  linkedEvents    Event[]       @relation("EventLinkedTask")
+
+  @@index([familyId])
+  @@index([propertyId])
+  @@index([status])
+  @@index([priority])
+  @@index([assignedTo])
+  @@index([dueAt])
+  @@index([deletedAt])
+  @@map("tasks")
+}
+
+model TaskComment {
+  id      String @id @default(cuid())
+  taskId  String @map("task_id")
+  userId  String @map("user_id")
+  content String @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+  @@map("task_comments")
+}
+
+// ============================================================
+// CALENDAR / EVENTS
+// ============================================================
+
+model Event {
+  id              String          @id @default(cuid())
+  familyId        String          @map("family_id")
+  propertyId      String?         @map("property_id")
+  title           String
+  description     String?         @db.Text
+  location        String?
+  startAt         DateTime        @map("start_at")
+  endAt           DateTime?       @map("end_at")
+  allDay          Boolean         @default(false) @map("all_day")
+  recurrenceRule  String?         @map("recurrence_rule")
+  linkedContactId String?         @map("linked_contact_id")
+  linkedTaskId    String?         @map("linked_task_id")
+  visibilityLevel VisibilityLevel @default(FAMILY) @map("visibility_level")
+  createdBy       String          @map("created_by")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  family        Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  property      Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  linkedContact Contact?  @relation("EventLinkedContact", fields: [linkedContactId], references: [id], onDelete: SetNull)
+  linkedTask    Task?     @relation("EventLinkedTask", fields: [linkedTaskId], references: [id], onDelete: SetNull)
+  creator       User      @relation("EventCreator", fields: [createdBy], references: [id])
+
+  @@index([familyId])
+  @@index([propertyId])
+  @@index([startAt])
+  @@index([deletedAt])
+  @@map("events")
+}
+
+// ============================================================
+// DOCUMENTS
+// ============================================================
+
+model Document {
+  id              String          @id @default(cuid())
+  familyId        String          @map("family_id")
+  propertyId      String?         @map("property_id")
+  uploadedBy      String          @map("uploaded_by")
+  fileName        String          @map("file_name")
+  storageKey      String          @unique @map("storage_key")
+  mimeType        String          @map("mime_type")
+  sizeBytes       Int             @map("size_bytes")
+  visibilityLevel VisibilityLevel @default(FAMILY) @map("visibility_level")
+  expiryDate      DateTime?       @map("expiry_date")
+  notes           String?         @db.Text
+  tags            Json?           @default("[]")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  family   Family         @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  property Property?      @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  uploader User           @relation(fields: [uploadedBy], references: [id])
+  links    DocumentLink[]
+
+  @@index([familyId])
+  @@index([propertyId])
+  @@index([uploadedBy])
+  @@index([deletedAt])
+  @@map("documents")
+}
+
+model DocumentLink {
+  id         String @id @default(cuid())
+  documentId String @map("document_id")
+  entityType String @map("entity_type")
+  entityId   String @map("entity_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, entityType, entityId])
+  @@index([entityType, entityId])
+  @@map("document_links")
+}
+
+// ============================================================
+// FINANCIAL
+// ============================================================
+
+model FinancialRecord {
+  id            String            @id @default(cuid())
+  familyId      String            @map("family_id")
+  propertyId    String?           @map("property_id")
+  category      FinancialCategory @default(OTHER)
+  amount        Decimal           @db.Decimal(12, 2)
+  currency      String            @default("EUR") @db.VarChar(3)
+  recordType    RecordType        @map("record_type")
+  paymentStatus PaymentStatus     @default(PENDING) @map("payment_status")
+  paidToContact String?           @map("paid_to_contact")
+  date          DateTime          @db.Date
+  paymentMethod String?           @map("payment_method")
+  notes         String?           @db.Text
+  createdBy     String            @map("created_by")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  family            Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  property          Property?         @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  contact           Contact?          @relation("FinancialPaidToContact", fields: [paidToContact], references: [id], onDelete: SetNull)
+  creator           User              @relation("FinancialCreator", fields: [createdBy], references: [id])
+  linkedOccupancies OccupancyRecord[] @relation("OccupancyLinkedRevenue")
+
+  @@index([familyId])
+  @@index([propertyId])
+  @@index([category])
+  @@index([recordType])
+  @@index([paymentStatus])
+  @@index([date])
+  @@index([deletedAt])
+  @@map("financial_records")
+}
+
+// ============================================================
+// OCCUPANCY
+// ============================================================
+
+model OccupancyRecord {
+  id              String        @id @default(cuid())
+  familyId        String        @map("family_id")
+  propertyId      String        @map("property_id")
+  type            OccupancyType
+  startDate       DateTime      @map("start_date") @db.Date
+  endDate         DateTime?     @map("end_date") @db.Date
+  notes           String?       @db.Text
+  linkedContactId String?       @map("linked_contact_id")
+  linkedRevenueId String?       @map("linked_revenue_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  family        Family           @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  property      Property         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  linkedContact Contact?         @relation("OccupancyLinkedContact", fields: [linkedContactId], references: [id], onDelete: SetNull)
+  linkedRevenue FinancialRecord? @relation("OccupancyLinkedRevenue", fields: [linkedRevenueId], references: [id], onDelete: SetNull)
+
+  @@index([familyId])
+  @@index([propertyId])
+  @@index([type])
+  @@index([startDate])
+  @@map("occupancy_records")
+}
+
+// ============================================================
+// REMINDERS
+// ============================================================
+
+model Reminder {
+  id          String          @id @default(cuid())
+  familyId    String          @map("family_id")
+  propertyId  String?         @map("property_id")
+  entityType  String          @map("entity_type")
+  entityId    String          @map("entity_id")
+  remindAt    DateTime        @map("remind_at")
+  channel     ReminderChannel @default(IN_APP)
+  recipientId String?         @map("recipient_id")
+  status      ReminderStatus  @default(PENDING)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  family    Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  property  Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  recipient User?     @relation("ReminderRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
+  @@index([entityType, entityId])
+  @@index([remindAt])
+  @@index([status])
+  @@map("reminders")
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+model Notification {
+  id       String  @id @default(cuid())
+  userId   String  @map("user_id")
+  familyId String  @map("family_id")
+  title    String
+  message  String  @db.Text
+  link     String?
+  read     Boolean @default(false)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([familyId])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ============================================================
+// ACTIVITY LOG
+// ============================================================
+
+model ActivityLog {
+  id         String @id @default(cuid())
+  familyId   String @map("family_id")
+  userId     String @map("user_id")
+  entityType String @map("entity_type")
+  entityId   String @map("entity_id")
+  action     String
+  metadata   Json?  @default("{}")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
+
+// ============================================================
+// DASHBOARD LAYOUTS
+// ============================================================
+
+model DashboardLayout {
+  id         String  @id @default(cuid())
+  familyId   String  @map("family_id")
+  userId     String? @map("user_id")
+  propertyId String? @map("property_id")
+  widgets    Json    @default("[]")
+  gridLayout Json    @default("[]") @map("grid_layout")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  family   Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user     User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, userId])
+  @@unique([familyId, propertyId])
+  @@index([familyId])
+  @@map("dashboard_layouts")
+}
+
+// ============================================================
+// MESSAGES
+// ============================================================
+
+model Message {
+  id       String @id @default(cuid())
+  familyId String @map("family_id")
+  userId   String @map("user_id")
+  content  String @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([familyId, createdAt])
+  @@index([userId])
+  @@map("messages")
+}
