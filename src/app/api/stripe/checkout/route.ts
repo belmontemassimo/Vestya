@@ -67,9 +67,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error) {
-    console.error("[Stripe Checkout]", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("[Stripe Checkout]", message);
     return NextResponse.json(
-      { error: "Failed to create checkout session" },
+      { error: message },
       { status: 500 },
     );
   }
