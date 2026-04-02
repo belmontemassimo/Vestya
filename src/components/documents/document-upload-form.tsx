@@ -10,11 +10,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
   Form,
   FormControl,
   FormField,
@@ -77,6 +72,7 @@ export function DocumentUploadForm({
   const [selectedTags, setSelectedTags] = useState<string[]>(defaultSelectedTags ?? []);
   const [customTags, setCustomTags] = useState<TagOption[]>([]);
   const [tagSearch, setTagSearch] = useState("");
+  const [tagDropdownOpen, setTagDropdownOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<UploadValues>({
@@ -256,25 +252,25 @@ export function DocumentUploadForm({
               )}
             />
 
-            {/* Tags multi-select dropdown */}
+            {/* Tags multi-select */}
             <div className="space-y-2">
               <FormLabel>{t("tags")}</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full justify-between font-normal"
-                  >
-                    <span className="truncate text-sm text-slate-500">
-                      {selectedTags.length > 0
-                        ? `${selectedTags.length} selected`
-                        : t("selectTags")}
-                    </span>
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[300px] p-0" align="start">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-between font-normal"
+                onClick={() => setTagDropdownOpen((prev) => !prev)}
+              >
+                <span className="truncate text-sm text-slate-500">
+                  {selectedTags.length > 0
+                    ? `${selectedTags.length} selected`
+                    : t("selectTags")}
+                </span>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+
+              {tagDropdownOpen && (
+                <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
                   {/* Search input */}
                   <div className="flex items-center gap-2 border-b px-3 py-2">
                     <Search className="h-4 w-4 shrink-0 text-slate-400" />
@@ -289,46 +285,47 @@ export function DocumentUploadForm({
                       }}
                       placeholder={t("searchTags")}
                       className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
+                      autoFocus
                     />
                   </div>
 
                   {/* Scrollable tag list */}
                   <div className="max-h-52 overflow-y-auto overscroll-contain p-1">
-                      {propertyTags.length > 0 && (
-                        <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                          Properties
-                        </div>
-                      )}
-                      {propertyTags.map((opt) => (
-                        <TagCheckbox key={opt.value} opt={opt} selected={selectedTags.includes(opt.value)} color="blue" onToggle={toggleTag} />
-                      ))}
-                      {memberTags.length > 0 && (
-                        <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                          Members
-                        </div>
-                      )}
-                      {memberTags.map((opt) => (
-                        <TagCheckbox key={opt.value} opt={opt} selected={selectedTags.includes(opt.value)} color="emerald" onToggle={toggleTag} />
-                      ))}
-                      {contactTags.length > 0 && (
-                        <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                          Contacts
-                        </div>
-                      )}
-                      {contactTags.map((opt) => (
-                        <TagCheckbox key={opt.value} opt={opt} selected={selectedTags.includes(opt.value)} color="amber" onToggle={toggleTag} />
-                      ))}
-                      {customTagsFiltered.length > 0 && (
-                        <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                          Custom
-                        </div>
-                      )}
-                      {customTagsFiltered.map((opt) => (
-                        <TagCheckbox key={opt.value} opt={opt} selected={selectedTags.includes(opt.value)} color="violet" onToggle={toggleTag} />
-                      ))}
-                      {filteredOptions.length === 0 && !showCreateOption && (
-                        <p className="px-2 py-3 text-center text-xs text-slate-400">{t("noTagsFound")}</p>
-                      )}
+                    {propertyTags.length > 0 && (
+                      <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                        Properties
+                      </div>
+                    )}
+                    {propertyTags.map((opt) => (
+                      <TagCheckbox key={opt.value} opt={opt} selected={selectedTags.includes(opt.value)} color="blue" onToggle={toggleTag} />
+                    ))}
+                    {memberTags.length > 0 && (
+                      <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                        Members
+                      </div>
+                    )}
+                    {memberTags.map((opt) => (
+                      <TagCheckbox key={opt.value} opt={opt} selected={selectedTags.includes(opt.value)} color="emerald" onToggle={toggleTag} />
+                    ))}
+                    {contactTags.length > 0 && (
+                      <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                        Contacts
+                      </div>
+                    )}
+                    {contactTags.map((opt) => (
+                      <TagCheckbox key={opt.value} opt={opt} selected={selectedTags.includes(opt.value)} color="amber" onToggle={toggleTag} />
+                    ))}
+                    {customTagsFiltered.length > 0 && (
+                      <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                        Custom
+                      </div>
+                    )}
+                    {customTagsFiltered.map((opt) => (
+                      <TagCheckbox key={opt.value} opt={opt} selected={selectedTags.includes(opt.value)} color="violet" onToggle={toggleTag} />
+                    ))}
+                    {filteredOptions.length === 0 && !showCreateOption && (
+                      <p className="px-2 py-3 text-center text-xs text-slate-400">{t("noTagsFound")}</p>
+                    )}
                   </div>
 
                   {/* Create new tag */}
@@ -344,8 +341,8 @@ export function DocumentUploadForm({
                       </button>
                     </div>
                   )}
-                </PopoverContent>
-              </Popover>
+                </div>
+              )}
               {/* Selected tags displayed as pills */}
               {selectedTags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
