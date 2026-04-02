@@ -57,8 +57,6 @@ export function WidgetRenderer({
   isEditing,
   onRemove,
   onUpdateConfig,
-  gridW,
-  gridH,
 }: WidgetRendererProps) {
   const hrefEntry = HREF_MAP[widget.type];
   const href =
@@ -82,8 +80,6 @@ export function WidgetRenderer({
         propertyId={propertyId}
         isEditing={isEditing}
         onUpdateConfig={onUpdateConfig}
-        gridW={gridW}
-        gridH={gridH}
       />
     </WidgetContainer>
   );
@@ -96,8 +92,6 @@ function WidgetContent({
   propertyId,
   isEditing,
   onUpdateConfig,
-  gridW,
-  gridH,
 }: {
   widget: WidgetInstance;
   dashboardData: Record<string, unknown>;
@@ -105,8 +99,6 @@ function WidgetContent({
   propertyId?: string;
   isEditing: boolean;
   onUpdateConfig?: (config: Record<string, unknown>) => void;
-  gridW: number;
-  gridH: number;
 }) {
   const d = dashboardData as unknown as DashboardData;
   const pid = context === "property" ? propertyId : undefined;
