@@ -372,7 +372,10 @@
     "uploading": "Téléchargement...",
     "tags": "Tags",
     "noTagsAvailable": "Aucune propriété ou membre à taguer.",
-    "selectTags": "Sélectionner des tags..."
+    "noTagsFound": "Aucun tag trouvé.",
+    "selectTags": "Sélectionner des tags...",
+    "searchTags": "Rechercher des tags...",
+    "createTag": "Créer « {name} »"
   },
   "spending": {
     "title": "Dépenses",

@@ -5,10 +5,11 @@ import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Upload, X, Check, ChevronsUpDown } from "lucide-react";
+import { Loader2, Upload, X, Check, ChevronsUpDown, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Popover,
   PopoverContent,
@@ -29,12 +30,26 @@ const uploadSchema = z.object({
   name: z.string().min(1),
 });
 
+const TAG_PILL_COLORS: Record<string, string> = {
+  property: "bg-blue-100 text-blue-700",
+  member: "bg-emerald-100 text-emerald-700",
+  contact: "bg-amber-100 text-amber-700",
+  custom: "bg-violet-100 text-violet-700",
+};
+
+const TAG_CHECK_COLORS: Record<string, string> = {
+  blue: "border-blue-500 bg-blue-500",
+  emerald: "border-emerald-500 bg-emerald-500",
+  amber: "border-amber-500 bg-amber-500",
+  violet: "border-violet-500 bg-violet-500",
+};
+
 type UploadValues = z.infer<typeof uploadSchema>;
 
 export interface TagOption {
   value: string;
   label: string;
-  type: "property" | "member" | "contact";
+  type: "property" | "member" | "contact" | "custom";
 }
 
 interface DocumentUploadFormProps {
@@ -61,6 +76,8 @@ export function DocumentUploadForm({
   const [isPending, setIsPending] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedTags, setSelectedTags] = useState<string[]>(defaultSelectedTags ?? []);
+  const [customTags, setCustomTags] = useState<TagOption[]>([]);
+  const [tagSearch, setTagSearch] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<UploadValues>({
@@ -81,10 +98,25 @@ export function DocumentUploadForm({
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
+  const allTagOptions = [...tagOptions, ...customTags];
+
   function toggleTag(value: string) {
     setSelectedTags((prev) =>
       prev.includes(value) ? prev.filter((t) => t !== value) : [...prev, value],
     );
+  }
+
+  function createCustomTag(label: string) {
+    const trimmed = label.trim();
+    if (!trimmed) return;
+    const exists = allTagOptions.some(
+      (o) => o.label.toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (exists) return;
+    const id = `custom-${trimmed.toLowerCase().replace(/\s+/g, "-")}`;
+    setCustomTags((prev) => [...prev, { value: id, label: trimmed, type: "custom" as TagOption["type"] }]);
+    setSelectedTags((prev) => [...prev, id]);
+    setTagSearch("");
   }
 
   async function handleSubmit(values: UploadValues) {
@@ -98,8 +130,8 @@ export function DocumentUploadForm({
 
     try {
       const tagData = selectedTags.map((id) => {
-        const opt = tagOptions.find((o) => o.value === id);
-        return { id, label: opt?.label ?? id, type: opt?.type ?? "property" };
+        const opt = allTagOptions.find((o) => o.value === id);
+        return { id, label: opt?.label ?? id, type: opt?.type ?? "custom" };
       });
 
       const result = await onCreateRecord({
@@ -149,9 +181,18 @@ export function DocumentUploadForm({
     }
   }
 
-  const propertyTags = tagOptions.filter((o) => o.type === "property");
-  const memberTags = tagOptions.filter((o) => o.type === "member");
-  const contactTags = tagOptions.filter((o) => o.type === "contact");
+  const searchLower = tagSearch.toLowerCase();
+  const filteredOptions = allTagOptions.filter(
+    (o) => !tagSearch || o.label.toLowerCase().includes(searchLower),
+  );
+  const propertyTags = filteredOptions.filter((o) => o.type === "property");
+  const memberTags = filteredOptions.filter((o) => o.type === "member");
+  const contactTags = filteredOptions.filter((o) => o.type === "contact");
+  const customTagsFiltered = filteredOptions.filter((o) => o.type === "custom");
+  const hasExactMatch = allTagOptions.some(
+    (o) => o.label.toLowerCase() === searchLower,
+  );
+  const showCreateOption = tagSearch.trim().length > 0 && !hasExactMatch;
 
   return (
     <Card>
@@ -235,101 +276,91 @@ export function DocumentUploadForm({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[300px] p-0" align="start">
-                  <div className="max-h-60 overflow-y-auto p-1">
-                    {propertyTags.length > 0 && (
-                      <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                        Properties
-                      </div>
-                    )}
-                    {propertyTags.map((opt) => {
-                      const selected = selectedTags.includes(opt.value);
-                      return (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => toggleTag(opt.value)}
-                          className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-slate-100"
-                        >
-                          <div className={cn(
-                            "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
-                            selected ? "border-blue-500 bg-blue-500" : "border-slate-300",
-                          )}>
-                            {selected && <Check className="h-3 w-3 text-white" />}
-                          </div>
-                          <span className="truncate">{opt.label}</span>
-                        </button>
-                      );
-                    })}
-                    {memberTags.length > 0 && (
-                      <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                        Members
-                      </div>
-                    )}
-                    {memberTags.map((opt) => {
-                      const selected = selectedTags.includes(opt.value);
-                      return (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => toggleTag(opt.value)}
-                          className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-slate-100"
-                        >
-                          <div className={cn(
-                            "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
-                            selected ? "border-emerald-500 bg-emerald-500" : "border-slate-300",
-                          )}>
-                            {selected && <Check className="h-3 w-3 text-white" />}
-                          </div>
-                          <span className="truncate">{opt.label}</span>
-                        </button>
-                      );
-                    })}
-                    {contactTags.length > 0 && (
-                      <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                        Contacts
-                      </div>
-                    )}
-                    {contactTags.map((opt) => {
-                      const selected = selectedTags.includes(opt.value);
-                      return (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => toggleTag(opt.value)}
-                          className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-slate-100"
-                        >
-                          <div className={cn(
-                            "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
-                            selected ? "border-amber-500 bg-amber-500" : "border-slate-300",
-                          )}>
-                            {selected && <Check className="h-3 w-3 text-white" />}
-                          </div>
-                          <span className="truncate">{opt.label}</span>
-                        </button>
-                      );
-                    })}
-                    {tagOptions.length === 0 && (
-                      <p className="px-2 py-3 text-center text-xs text-slate-400">{t("noTagsAvailable")}</p>
-                    )}
+                  {/* Search input */}
+                  <div className="flex items-center gap-2 border-b px-3 py-2">
+                    <Search className="h-4 w-4 shrink-0 text-slate-400" />
+                    <input
+                      value={tagSearch}
+                      onChange={(e) => setTagSearch(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && showCreateOption) {
+                          e.preventDefault();
+                          createCustomTag(tagSearch);
+                        }
+                      }}
+                      placeholder={t("searchTags")}
+                      className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
+                    />
                   </div>
+
+                  {/* Scrollable tag list */}
+                  <ScrollArea className="max-h-52">
+                    <div className="p-1">
+                      {propertyTags.length > 0 && (
+                        <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                          Properties
+                        </div>
+                      )}
+                      {propertyTags.map((opt) => (
+                        <TagCheckbox key={opt.value} opt={opt} selected={selectedTags.includes(opt.value)} color="blue" onToggle={toggleTag} />
+                      ))}
+                      {memberTags.length > 0 && (
+                        <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                          Members
+                        </div>
+                      )}
+                      {memberTags.map((opt) => (
+                        <TagCheckbox key={opt.value} opt={opt} selected={selectedTags.includes(opt.value)} color="emerald" onToggle={toggleTag} />
+                      ))}
+                      {contactTags.length > 0 && (
+                        <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                          Contacts
+                        </div>
+                      )}
+                      {contactTags.map((opt) => (
+                        <TagCheckbox key={opt.value} opt={opt} selected={selectedTags.includes(opt.value)} color="amber" onToggle={toggleTag} />
+                      ))}
+                      {customTagsFiltered.length > 0 && (
+                        <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                          Custom
+                        </div>
+                      )}
+                      {customTagsFiltered.map((opt) => (
+                        <TagCheckbox key={opt.value} opt={opt} selected={selectedTags.includes(opt.value)} color="violet" onToggle={toggleTag} />
+                      ))}
+                      {filteredOptions.length === 0 && !showCreateOption && (
+                        <p className="px-2 py-3 text-center text-xs text-slate-400">{t("noTagsFound")}</p>
+                      )}
+                    </div>
+                  </ScrollArea>
+
+                  {/* Create new tag */}
+                  {showCreateOption && (
+                    <div className="border-t px-1 py-1">
+                      <button
+                        type="button"
+                        onClick={() => createCustomTag(tagSearch)}
+                        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-violet-600 hover:bg-violet-50"
+                      >
+                        <Plus className="h-4 w-4" />
+                        {t("createTag", { name: tagSearch.trim() })}
+                      </button>
+                    </div>
+                  )}
                 </PopoverContent>
               </Popover>
               {/* Selected tags displayed as pills */}
               {selectedTags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {selectedTags.map((id) => {
-                    const opt = tagOptions.find((o) => o.value === id);
+                    const opt = allTagOptions.find((o) => o.value === id);
                     if (!opt) return null;
                     return (
                       <span
                         key={id}
                         className={cn(
                           "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium",
-                          opt.type === "property"
-                            ? "bg-blue-100 text-blue-700"
-                            : opt.type === "contact"
-                              ? "bg-amber-100 text-amber-700"
-                              : "bg-emerald-100 text-emerald-700",
+                          TAG_PILL_COLORS[opt.type] ?? "bg-slate-100 text-slate-700",
                         )}
                       >
                         {opt.label}
@@ -357,5 +388,35 @@ export function DocumentUploadForm({
         </Form>
       </CardContent>
     </Card>
+  );
+}
+
+function TagCheckbox({
+  opt,
+  selected,
+  color,
+  onToggle,
+}: {
+  opt: TagOption;
+  selected: boolean;
+  color: string;
+  onToggle: (value: string) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(opt.value)}
+      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-slate-100"
+    >
+      <div
+        className={cn(
+          "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
+          selected ? TAG_CHECK_COLORS[color] ?? "border-slate-500 bg-slate-500" : "border-slate-300",
+        )}
+      >
+        {selected && <Check className="h-3 w-3 text-white" />}
+      </div>
+      <span className="truncate">{opt.label}</span>
+    </button>
   );
 }

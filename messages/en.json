@@ -372,7 +372,10 @@
     "uploading": "Uploading...",
     "tags": "Tags",
     "noTagsAvailable": "No properties or members to tag.",
-    "selectTags": "Select tags..."
+    "noTagsFound": "No tags found.",
+    "selectTags": "Select tags...",
+    "searchTags": "Search tags...",
+    "createTag": "Create \"{name}\""
   },
   "spending": {
     "title": "Spending",
