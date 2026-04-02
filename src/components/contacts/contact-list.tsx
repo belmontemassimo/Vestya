@@ -37,6 +37,8 @@ interface ContactListProps {
   categoryFilter?: string;
   onCategoryChange?: (value: string) => void;
   onAdd?: () => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 export function ContactList({
@@ -44,6 +46,8 @@ export function ContactList({
   categoryFilter = "all",
   onCategoryChange,
   onAdd,
+  onEdit,
+  onDelete,
 }: ContactListProps) {
   const t = useTranslations("contacts");
 
@@ -100,6 +104,8 @@ export function ContactList({
                 category={contact.category}
                 phone={phone}
                 email={email}
+                onEdit={() => onEdit?.(contact.id)}
+                onDelete={() => onDelete?.(contact.id)}
               />
             );
           })}
