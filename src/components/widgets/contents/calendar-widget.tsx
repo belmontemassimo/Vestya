@@ -3,8 +3,14 @@
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { FormDialog } from "@/components/shared/form-dialog";
 import { EventForm } from "@/components/calendar/event-form";
 import { createEvent } from "@/actions/event.actions";
@@ -30,6 +36,9 @@ interface CalendarWidgetProps {
   propertyId?: string;
   properties?: readonly SelectOption[];
   contacts?: readonly SelectOption[];
+  initialView?: CalendarViewType;
+  isEditing?: boolean;
+  onChangeView?: (view: CalendarViewType) => void;
 }
 
 const EVENT_COLORS = [
@@ -45,23 +54,56 @@ function getEventColor(index: number): string {
   return EVENT_COLORS[index % EVENT_COLORS.length];
 }
 
-type CalendarView = "month" | "week" | "day";
-const VIEWS: CalendarView[] = ["month", "week", "day"];
+export type CalendarViewType = "month" | "week" | "day";
+const VIEW_OPTIONS: CalendarViewType[] = ["month", "week", "day"];
 
-export function CalendarWidget({ events, propertyId, properties = [], contacts = [] }: CalendarWidgetProps) {
+export function CalendarWidget({
+  events,
+  propertyId,
+  properties = [],
+  contacts = [],
+  initialView = "month",
+  isEditing = false,
+  onChangeView,
+}: CalendarWidgetProps) {
   const t = useTranslations("calendar");
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [view, setView] = useState<CalendarView>("month");
+  const [view, setView] = useState<CalendarViewType>(initialView);
+  const [refDate, setRefDate] = useState(() => new Date());
 
-  const viewIndex = VIEWS.indexOf(view);
-
-  function prevView() {
-    setView(VIEWS[(viewIndex - 1 + VIEWS.length) % VIEWS.length]);
+  function navigatePrev() {
+    setRefDate((prev) => {
+      const d = new Date(prev);
+      if (view === "month") d.setMonth(d.getMonth() - 1);
+      else if (view === "week") d.setDate(d.getDate() - 7);
+      else d.setDate(d.getDate() - 1);
+      return d;
+    });
   }
 
-  function nextView() {
-    setView(VIEWS[(viewIndex + 1) % VIEWS.length]);
+  function navigateNext() {
+    setRefDate((prev) => {
+      const d = new Date(prev);
+      if (view === "month") d.setMonth(d.getMonth() + 1);
+      else if (view === "week") d.setDate(d.getDate() + 7);
+      else d.setDate(d.getDate() + 1);
+      return d;
+    });
+  }
+
+  function getHeaderLabel(): string {
+    if (view === "month") {
+      return refDate.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    }
+    if (view === "week") {
+      const monday = getMonday(refDate);
+      const sunday = new Date(monday);
+      sunday.setDate(sunday.getDate() + 6);
+      const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      return `${fmt(monday)} – ${fmt(sunday)}`;
+    }
+    return refDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
   }
 
   async function handleCreate(values: Record<string, unknown>) {
@@ -85,22 +127,22 @@ export function CalendarWidget({ events, propertyId, properties = [], contacts =
   return (
     <>
       <div className="flex h-full flex-col">
-        {/* Header with view toggle */}
+        {/* Header: arrows + period label + add button */}
         <div className="mb-2 flex items-center justify-between">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); prevView(); }}
+              onClick={(e) => { e.stopPropagation(); navigatePrev(); }}
               className="rounded-md p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
             >
               <ChevronLeft className="h-3.5 w-3.5" />
             </button>
-            <span className="min-w-[3.5rem] text-center text-xs font-semibold text-slate-700 capitalize">
-              {t(view)}
+            <span className="min-w-[5rem] text-center text-[11px] font-semibold text-slate-700">
+              {getHeaderLabel()}
             </span>
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); nextView(); }}
+              onClick={(e) => { e.stopPropagation(); navigateNext(); }}
               className="rounded-md p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
             >
               <ChevronRight className="h-3.5 w-3.5" />
@@ -118,13 +160,45 @@ export function CalendarWidget({ events, propertyId, properties = [], contacts =
 
         <div className="min-h-0 flex-1">
           {view === "day" ? (
-            <DayView events={events} />
+            <DayView events={events} refDate={refDate} />
           ) : view === "week" ? (
-            <WeekView events={events} />
+            <WeekView events={events} refDate={refDate} />
           ) : (
-            <MonthView events={events} />
+            <MonthView events={events} refDate={refDate} />
           )}
         </div>
+
+        {/* Edit mode: view type selector */}
+        {isEditing && onChangeView && (
+          <div className="absolute bottom-2 left-2 z-10">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  onClick={(e) => e.stopPropagation()}
+                  className="rounded-md bg-black/40 p-1.5 text-white backdrop-blur-sm transition-colors hover:bg-black/60"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                {VIEW_OPTIONS.map((v) => (
+                  <DropdownMenuItem
+                    key={v}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setView(v);
+                      onChangeView(v);
+                    }}
+                    className={cn(view === v && "font-semibold")}
+                  >
+                    {t(v)}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </div>
       <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title={t("addEvent")}>
         <EventForm
@@ -143,27 +217,23 @@ export function CalendarWidget({ events, propertyId, properties = [], contacts =
 // DAY VIEW — single column, hours 00–23
 // ────────────────────────────────────────────
 
-function DayView({ events }: { events: CalendarEvent[] }) {
+function DayView({ events, refDate }: { events: CalendarEvent[]; refDate: Date }) {
   const now = new Date();
 
-  const todayEvents = useMemo(() => {
-    const s = startOfDay(now);
-    const e = endOfDay(now);
+  const dayEvents = useMemo(() => {
+    const s = startOfDay(refDate);
+    const e = endOfDay(refDate);
     return events.filter((ev) => {
       const evStart = new Date(ev.startAt);
       const evEnd = ev.endAt ? new Date(ev.endAt) : evStart;
       return evStart <= e && evEnd >= s;
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [events]);
+  }, [events, refDate]);
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-2 text-xs font-semibold text-slate-800">
-        {formatDateHeader(now)}
-      </div>
       <div className="relative flex-1 overflow-y-auto">
         {hours.map((hour) => (
           <div key={hour} className="flex h-6 items-start">
@@ -173,7 +243,7 @@ function DayView({ events }: { events: CalendarEvent[] }) {
             <div className="flex-1 border-t border-slate-100" />
           </div>
         ))}
-        {todayEvents.map((event, i) => {
+        {dayEvents.map((event, i) => {
           const d = new Date(event.startAt);
           const top = (d.getHours() + d.getMinutes() / 60) * 24;
           return (
@@ -200,9 +270,9 @@ function DayView({ events }: { events: CalendarEvent[] }) {
 
 const DAYS_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-function WeekView({ events }: { events: CalendarEvent[] }) {
+function WeekView({ events, refDate }: { events: CalendarEvent[]; refDate: Date }) {
   const now = new Date();
-  const monday = getMonday(now);
+  const monday = getMonday(refDate);
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday);
     d.setDate(d.getDate() + i);
@@ -218,7 +288,7 @@ function WeekView({ events }: { events: CalendarEvent[] }) {
       return evStart <= e && evEnd >= s;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [events]);
+  }, [events, refDate]);
 
   const hours = [0, 3, 6, 9, 12, 15, 18, 21];
 
@@ -285,10 +355,10 @@ function WeekView({ events }: { events: CalendarEvent[] }) {
 
 const DAYS_LETTER = ["M", "T", "W", "T", "F", "S", "S"];
 
-function MonthView({ events }: { events: CalendarEvent[] }) {
+function MonthView({ events, refDate }: { events: CalendarEvent[]; refDate: Date }) {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
+  const year = refDate.getFullYear();
+  const month = refDate.getMonth();
 
   const firstOfMonth = new Date(year, month, 1);
   const lastOfMonth = new Date(year, month + 1, 0);

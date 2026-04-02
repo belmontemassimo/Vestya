@@ -121,12 +121,31 @@ function WidgetContent({
     case "calendar": {
       const calPropertyOpts = (d.properties ?? []).map((p) => ({ value: p.id, label: p.name }));
       const calContactOpts = (d.contacts ?? []).map((c) => ({ value: c.id, label: c.name }));
-      return <CalendarWidget events={d.events ?? []} gridW={gridW} gridH={gridH} propertyId={pid} properties={calPropertyOpts} contacts={calContactOpts} />;
+      return (
+        <CalendarWidget
+          events={d.events ?? []}
+          propertyId={pid}
+          properties={calPropertyOpts}
+          contacts={calContactOpts}
+          initialView={(widget.config.calendarView as "month" | "week" | "day") ?? "month"}
+          isEditing={isEditing}
+          onChangeView={onUpdateConfig ? (v) => onUpdateConfig({ calendarView: v }) : undefined}
+        />
+      );
     }
 
     case "property-calendar": {
       const propCalContactOpts = (d.contacts ?? []).map((c) => ({ value: c.id, label: c.name }));
-      return <PropertyCalendarWidget events={d.events ?? []} gridW={gridW} gridH={gridH} propertyId={pid} contacts={propCalContactOpts} />;
+      return (
+        <PropertyCalendarWidget
+          events={d.events ?? []}
+          propertyId={pid}
+          contacts={propCalContactOpts}
+          initialView={(widget.config.calendarView as "month" | "week" | "day") ?? "month"}
+          isEditing={isEditing}
+          onChangeView={onUpdateConfig ? (v) => onUpdateConfig({ calendarView: v }) : undefined}
+        />
+      );
     }
 
     case "family-members":
