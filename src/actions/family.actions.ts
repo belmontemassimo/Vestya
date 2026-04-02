@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { nanoid } from "nanoid";
 import { requireAuth, requireFamilyAuth } from "@/lib/auth-guard";
 import { checkPermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
@@ -153,7 +152,9 @@ export async function inviteMember(
       };
     }
 
-    const token = nanoid(32);
+    // Generate a short, readable invite code (6 uppercase alphanumeric)
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const code = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + INVITATION_EXPIRY_DAYS);
 
@@ -162,17 +163,16 @@ export async function inviteMember(
         familyId: session.user.familyId,
         email: parsed.email,
         role: parsed.role as FamilyRole,
-        token,
+        token: code,
         invitedBy: session.user.id,
         expiresAt,
       },
     });
 
-    const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/en/invite/${token}`;
     const { subject, html } = buildInvitationEmail(
       session.user.familyName,
       session.user.name ?? "A family member",
-      inviteUrl,
+      code,
     );
     await sendEmail({ to: parsed.email, subject, html });
 
@@ -197,8 +197,9 @@ export async function acceptInvitation(
   userId: string,
 ): Promise<ActionResult<FamilyMembership>> {
   try {
+    // Accept both uppercase and lowercase input
     const invitation = await prisma.familyInvitation.findUnique({
-      where: { token },
+      where: { token: token.trim().toUpperCase() },
     });
 
     if (!invitation) {

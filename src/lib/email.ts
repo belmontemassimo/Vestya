@@ -85,7 +85,7 @@ export function buildWelcomeEmail(
 export function buildInvitationEmail(
   familyName: string,
   inviterName: string,
-  inviteUrl: string,
+  code: string,
 ): { subject: string; html: string } {
   return {
     subject: `You've been invited to join ${familyName} on Vestya`,
@@ -93,14 +93,19 @@ export function buildInvitationEmail(
       <h2 style="color: #0f172a; font-size: 22px; font-weight: 600; margin: 0 0 12px;">
         Join ${familyName}
       </h2>
-      <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">
+      <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 8px;">
         ${inviterName} has invited you to join their family workspace on Vestya.
       </p>
-      <p style="margin: 0 0 32px;">
-        ${button("Accept Invitation", inviteUrl)}
+      <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">
+        Use this code when signing up or from your onboarding page:
       </p>
+      <div style="text-align: center; margin: 0 0 32px;">
+        <span style="display: inline-block; padding: 16px 32px; background: #f1f5f9; border-radius: 12px; font-family: monospace; font-size: 32px; font-weight: 700; letter-spacing: 6px; color: #0f172a;">
+          ${code}
+        </span>
+      </div>
       <p style="color: #64748b; font-size: 13px; margin: 0;">
-        This invitation expires in 7 days. If you didn't expect this email, you can safely ignore it.
+        This code expires in 7 days. If you didn't expect this email, you can safely ignore it.
       </p>
     `),
   };
