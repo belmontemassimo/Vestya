@@ -321,6 +321,7 @@
     "selectProperty": "Select a property",
     "contact": "Contact",
     "selectContact": "Select a contact",
+    "none": "None",
     "created": "Event created!",
     "updated": "Event updated!",
     "error": "Something went wrong.",

@@ -49,6 +49,7 @@ interface SelectOption {
 interface EventFormProps {
   defaultValues?: Partial<EventValues>;
   isEditing?: boolean;
+  showPropertyField?: boolean;
   properties: readonly SelectOption[];
   contacts: readonly SelectOption[];
   onSubmit: (values: EventValues) => Promise<{ success: boolean; error?: string }>;
@@ -57,6 +58,7 @@ interface EventFormProps {
 export function EventForm({
   defaultValues,
   isEditing = false,
+  showPropertyField = true,
   properties,
   contacts,
   onSubmit,
@@ -174,43 +176,47 @@ export function EventForm({
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="propertyId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("property")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t("selectProperty")} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {properties.map((p) => (
-                          <SelectItem key={p.value} value={p.value}>
-                            {p.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {showPropertyField && (
+                <FormField
+                  control={form.control}
+                  name="propertyId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("property")}</FormLabel>
+                      <Select onValueChange={(v) => field.onChange(v === "__none__" ? "" : v)} defaultValue={field.value || "__none__"}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t("selectProperty")} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="__none__">{t("none")}</SelectItem>
+                          {properties.map((p) => (
+                            <SelectItem key={p.value} value={p.value}>
+                              {p.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormField
                 control={form.control}
                 name="contactId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("contact")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={(v) => field.onChange(v === "__none__" ? "" : v)} defaultValue={field.value || "__none__"}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t("selectContact")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        <SelectItem value="__none__">{t("none")}</SelectItem>
                         {contacts.map((c) => (
                           <SelectItem key={c.value} value={c.value}>
                             {c.label}

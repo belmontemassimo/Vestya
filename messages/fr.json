@@ -321,6 +321,7 @@
     "selectProperty": "Sélectionner une propriété",
     "contact": "Contact",
     "selectContact": "Sélectionner un contact",
+    "none": "Aucun",
     "created": "Événement créé !",
     "updated": "Événement mis à jour !",
     "error": "Une erreur est survenue.",

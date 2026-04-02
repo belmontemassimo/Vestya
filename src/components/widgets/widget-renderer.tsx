@@ -118,11 +118,16 @@ function WidgetContent({
     case "property-tasks":
       return <PropertyTasksWidget tasks={d.tasks ?? []} propertyId={pid} />;
 
-    case "calendar":
-      return <CalendarWidget events={d.events ?? []} gridW={gridW} gridH={gridH} propertyId={pid} />;
+    case "calendar": {
+      const calPropertyOpts = (d.properties ?? []).map((p) => ({ value: p.id, label: p.name }));
+      const calContactOpts = (d.contacts ?? []).map((c) => ({ value: c.id, label: c.name }));
+      return <CalendarWidget events={d.events ?? []} gridW={gridW} gridH={gridH} propertyId={pid} properties={calPropertyOpts} contacts={calContactOpts} />;
+    }
 
-    case "property-calendar":
-      return <PropertyCalendarWidget events={d.events ?? []} gridW={gridW} gridH={gridH} propertyId={pid} />;
+    case "property-calendar": {
+      const propCalContactOpts = (d.contacts ?? []).map((c) => ({ value: c.id, label: c.name }));
+      return <PropertyCalendarWidget events={d.events ?? []} gridW={gridW} gridH={gridH} propertyId={pid} contacts={propCalContactOpts} />;
+    }
 
     case "family-members":
       return <FamilyMembersWidget members={d.members ?? []} />;

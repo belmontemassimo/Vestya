@@ -18,11 +18,18 @@ interface CalendarEvent {
   property?: { name: string } | null;
 }
 
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
 interface CalendarWidgetProps {
   events: CalendarEvent[];
   gridW: number;
   gridH: number;
   propertyId?: string;
+  properties?: readonly SelectOption[];
+  contacts?: readonly SelectOption[];
 }
 
 const EVENT_COLORS = [
@@ -38,7 +45,7 @@ function getEventColor(index: number): string {
   return EVENT_COLORS[index % EVENT_COLORS.length];
 }
 
-export function CalendarWidget({ events, gridW, gridH, propertyId }: CalendarWidgetProps) {
+export function CalendarWidget({ events, gridW, gridH, propertyId, properties = [], contacts = [] }: CalendarWidgetProps) {
   const t = useTranslations("calendar");
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -76,7 +83,13 @@ export function CalendarWidget({ events, gridW, gridH, propertyId }: CalendarWid
         </div>
       </div>
       <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title={t("addEvent")}>
-        <EventForm properties={[]} contacts={[]} onSubmit={handleCreate} defaultValues={propertyId ? { propertyId } : undefined} />
+        <EventForm
+          properties={propertyId ? [] : [...properties]}
+          contacts={[...contacts]}
+          showPropertyField={!propertyId}
+          onSubmit={handleCreate}
+          defaultValues={propertyId ? { propertyId } : undefined}
+        />
       </FormDialog>
     </>
   );
@@ -93,8 +106,9 @@ function DayView({ events }: { events: CalendarEvent[] }) {
     const s = startOfDay(now);
     const e = endOfDay(now);
     return events.filter((ev) => {
-      const d = new Date(ev.startAt);
-      return d >= s && d <= e;
+      const evStart = new Date(ev.startAt);
+      const evEnd = ev.endAt ? new Date(ev.endAt) : evStart;
+      return evStart <= e && evEnd >= s;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events]);
@@ -155,8 +169,9 @@ function WeekView({ events }: { events: CalendarEvent[] }) {
     const s = startOfDay(weekDays[0]);
     const e = endOfDay(weekDays[6]);
     return events.filter((ev) => {
-      const d = new Date(ev.startAt);
-      return d >= s && d <= e;
+      const evStart = new Date(ev.startAt);
+      const evEnd = ev.endAt ? new Date(ev.endAt) : evStart;
+      return evStart <= e && evEnd >= s;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events]);
@@ -250,16 +265,7 @@ function MonthView({ events }: { events: CalendarEvent[] }) {
     if (cur > lastOfMonth && cur.getMonth() !== month) break;
   }
 
-  const eventsByDate = useMemo(() => {
-    const map = new Map<string, CalendarEvent[]>();
-    for (const ev of events) {
-      const k = dKey(new Date(ev.startAt));
-      const arr = map.get(k) ?? [];
-      arr.push(ev);
-      map.set(k, arr);
-    }
-    return map;
-  }, [events]);
+  const eventsByDate = useMemo(() => expandEventsByDate(events), [events]);
 
   return (
     <div className="flex h-full flex-col">
@@ -356,4 +362,21 @@ function dKey(d: Date): string {
 
 function formatDateHeader(d: Date): string {
   return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+}
+
+function expandEventsByDate(events: CalendarEvent[]): Map<string, CalendarEvent[]> {
+  const map = new Map<string, CalendarEvent[]>();
+  for (const ev of events) {
+    const start = startOfDay(new Date(ev.startAt));
+    const end = ev.endAt ? startOfDay(new Date(ev.endAt)) : start;
+    const cur = new Date(start);
+    while (cur <= end) {
+      const k = dKey(cur);
+      const arr = map.get(k) ?? [];
+      arr.push(ev);
+      map.set(k, arr);
+      cur.setDate(cur.getDate() + 1);
+    }
+  }
+  return map;
 }

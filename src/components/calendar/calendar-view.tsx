@@ -62,10 +62,16 @@ export function CalendarView({
   const eventsByDate = useMemo(() => {
     const map = new Map<string, CalendarEvent[]>();
     for (const ev of events) {
-      const k = dKey(new Date(ev.start));
-      const arr = map.get(k) ?? [];
-      arr.push(ev);
-      map.set(k, arr);
+      const start = startOfDay(new Date(ev.start));
+      const end = ev.end ? startOfDay(new Date(ev.end)) : start;
+      const cur = new Date(start);
+      while (cur <= end) {
+        const k = dKey(cur);
+        const arr = map.get(k) ?? [];
+        arr.push(ev);
+        map.set(k, arr);
+        cur.setDate(cur.getDate() + 1);
+      }
     }
     return map;
   }, [events]);
@@ -200,6 +206,10 @@ function buildWeeks(year: number, month: number): Date[][] {
     if (cur > lastOfMonth && cur.getMonth() !== month) break;
   }
   return weeks;
+}
+
+function startOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
 function isSameDay(a: Date, b: Date): boolean {
