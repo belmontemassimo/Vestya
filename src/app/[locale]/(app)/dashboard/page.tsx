@@ -48,7 +48,11 @@ export default async function DashboardPage() {
       },
     }),
     prisma.contact.findMany({
-      where: { familyId, deletedAt: null },
+      where: {
+        familyId,
+        deletedAt: null,
+        propertyContacts: { none: {} },
+      },
       orderBy: { name: "asc" },
       take: 10,
     }),
