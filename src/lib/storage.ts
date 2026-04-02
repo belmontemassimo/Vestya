@@ -58,3 +58,16 @@ export function generateStorageKey(
   const sanitizedName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
   return `${familyId}/${timestamp}-${sanitizedName}`;
 }
+
+/**
+ * Resolve a value that may be a storage key or a legacy URL.
+ * Storage keys don't start with "http", so we generate a presigned URL.
+ * Legacy URLs (http://...) are returned as-is (they'll likely be broken).
+ */
+export async function resolveImageUrl(
+  keyOrUrl: string,
+  expiresIn = 3600,
+): Promise<string> {
+  if (keyOrUrl.startsWith("http")) return keyOrUrl;
+  return getDownloadUrl(keyOrUrl, expiresIn);
+}

@@ -1,5 +1,6 @@
 import { requireFamilyAuth } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
+import { resolveImageUrl } from "@/lib/storage";
 import { getFamilyDashboard } from "@/actions/dashboard.actions";
 import { DashboardClient } from "./dashboard-client";
 
@@ -94,6 +95,54 @@ export default async function DashboardPage() {
 
   const layout = layoutResult.success ? layoutResult.data : null;
 
+  // Resolve property cover image storage keys to presigned URLs
+  const resolvedProperties = await Promise.all(
+    properties.map(async (p) => {
+      const rawImages = Array.isArray(p.images) ? p.images : [];
+      const resolvedImages = await Promise.all(
+        rawImages
+          .filter((img): img is string => typeof img === "string" && img.length > 0)
+          .map((img) => resolveImageUrl(img)),
+      );
+      return {
+        id: p.id,
+        name: p.name,
+        city: p.city,
+        country: p.country,
+        propertyType: p.propertyType,
+        status: p.status,
+        latitude: p.latitude,
+        longitude: p.longitude,
+        images: resolvedImages,
+      };
+    }),
+  );
+
+  // Resolve coverImage keys in widget configs
+  const resolvedLayout = layout
+    ? {
+        ...layout,
+        widgets: await Promise.all(
+          layout.widgets.map(async (w) => {
+            if (
+              w.type === "property" &&
+              typeof w.config.coverImage === "string" &&
+              w.config.coverImage.length > 0
+            ) {
+              return {
+                ...w,
+                config: {
+                  ...w.config,
+                  coverImage: await resolveImageUrl(w.config.coverImage),
+                },
+              };
+            }
+            return w;
+          }),
+        ),
+      }
+    : null;
+
   const dashboardData = {
     tasks: JSON.parse(JSON.stringify(tasks)),
     events: JSON.parse(JSON.stringify(events)),
@@ -108,20 +157,10 @@ export default async function DashboardPage() {
     messages: JSON.parse(JSON.stringify(messages)),
     reminders: JSON.parse(JSON.stringify(reminders)),
     documents: JSON.parse(JSON.stringify(documents)),
-    properties: properties.map((p) => ({
-      id: p.id,
-      name: p.name,
-      city: p.city,
-      country: p.country,
-      propertyType: p.propertyType,
-      status: p.status,
-      latitude: p.latitude,
-      longitude: p.longitude,
-      images: p.images,
-    })),
+    properties: resolvedProperties,
   };
 
   return (
-    <DashboardClient initialLayout={layout} dashboardData={dashboardData} />
+    <DashboardClient initialLayout={resolvedLayout} dashboardData={dashboardData} />
   );
 }
