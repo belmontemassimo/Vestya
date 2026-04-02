@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { SubscriptionDialog } from "@/components/subscription/subscription-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,17 +49,20 @@ type PropertyValues = z.infer<typeof propertySchema>;
 interface PropertyFormProps {
   defaultValues?: Partial<PropertyValues>;
   isEditing?: boolean;
+  currentPlan?: string;
   onSubmit: (values: PropertyValues) => Promise<{ success: boolean; error?: string }>;
 }
 
 export function PropertyForm({
   defaultValues,
   isEditing = false,
+  currentPlan = "free",
   onSubmit,
 }: PropertyFormProps) {
   const t = useTranslations("properties");
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const form = useForm<PropertyValues>({
     resolver: zodResolver(propertySchema),
@@ -82,6 +86,8 @@ export function PropertyForm({
       if (result.success) {
         toast.success(isEditing ? t("updated") : t("created"));
         router.push("/properties");
+      } else if (result.error?.includes("Upgrade to add more")) {
+        setShowUpgrade(true);
       } else {
         toast.error(result.error ?? t("error"));
       }
@@ -93,6 +99,7 @@ export function PropertyForm({
   }
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>
@@ -244,5 +251,13 @@ export function PropertyForm({
         </Form>
       </CardContent>
     </Card>
+
+    <SubscriptionDialog
+      open={showUpgrade}
+      onOpenChange={setShowUpgrade}
+      currentPlan={currentPlan}
+      context="propertyLimit"
+    />
+    </>
   );
 }

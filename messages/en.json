@@ -642,5 +642,18 @@
       "emailTitle": "Email",
       "addressTitle": "Address"
     }
+  },
+  "subscriptionDialog": {
+    "onboardingTitle": "Choose a plan for your family",
+    "onboardingDescription": "Start free and upgrade anytime as your family grows.",
+    "limitTitle": "Upgrade to add more properties",
+    "limitDescription": "You've reached the property limit on your current plan. Upgrade to manage more properties.",
+    "popular": "Most popular",
+    "upgrade": "Upgrade",
+    "currentPlan": "Current plan",
+    "loading": "Loading...",
+    "error": "Something went wrong. Please try again.",
+    "skipForNow": "Continue with Free plan",
+    "maybeLater": "Maybe later"
   }
 }

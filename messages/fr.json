@@ -642,5 +642,18 @@
       "emailTitle": "Email",
       "addressTitle": "Adresse"
     }
+  },
+  "subscriptionDialog": {
+    "onboardingTitle": "Choisissez un plan pour votre famille",
+    "onboardingDescription": "Commencez gratuitement et passez à un plan supérieur quand votre famille grandit.",
+    "limitTitle": "Passez à un plan supérieur pour ajouter des propriétés",
+    "limitDescription": "Vous avez atteint la limite de propriétés de votre plan actuel. Passez à un plan supérieur pour en gérer davantage.",
+    "popular": "Le plus populaire",
+    "upgrade": "Passer au plan",
+    "currentPlan": "Plan actuel",
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue. Veuillez réessayer.",
+    "skipForNow": "Continuer avec le plan gratuit",
+    "maybeLater": "Plus tard"
   }
 }

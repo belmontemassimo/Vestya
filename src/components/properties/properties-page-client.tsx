@@ -12,10 +12,12 @@ import { useRouter } from "@/i18n/navigation";
 
 interface PropertiesPageClientProps {
   properties: Parameters<typeof PropertyList>[0]["properties"];
+  currentPlan?: string;
 }
 
 export function PropertiesPageClient({
   properties,
+  currentPlan,
 }: PropertiesPageClientProps) {
   const t = useTranslations("properties");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -46,7 +48,7 @@ export function PropertiesPageClient({
       <PropertyList properties={properties} />
 
       <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title={t("addProperty")}>
-        <PropertyForm onSubmit={handleSubmit} />
+        <PropertyForm onSubmit={handleSubmit} currentPlan={currentPlan} />
       </FormDialog>
     </div>
   );

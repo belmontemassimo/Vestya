@@ -6,7 +6,11 @@ import { PageHeader } from "@/components/shared/page-header";
 import { PropertyForm } from "@/components/properties/property-form";
 import { createProperty } from "@/actions/property.actions";
 
-export function NewPropertyClient() {
+interface NewPropertyClientProps {
+  currentPlan?: string;
+}
+
+export function NewPropertyClient({ currentPlan }: NewPropertyClientProps) {
   const t = useTranslations("properties");
   const router = useRouter();
 
@@ -22,7 +26,7 @@ export function NewPropertyClient() {
     <div className="space-y-6">
       <PageHeader title={t("addProperty")} />
       <div className="mx-auto max-w-2xl">
-        <PropertyForm onSubmit={handleSubmit} />
+        <PropertyForm onSubmit={handleSubmit} currentPlan={currentPlan} />
       </div>
     </div>
   );

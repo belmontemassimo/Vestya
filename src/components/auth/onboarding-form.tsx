@@ -9,6 +9,7 @@ import { z } from "zod";
 import { Loader2, Plus, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { createFamily, acceptInvitation } from "@/actions/family.actions";
+import { SubscriptionDialog } from "@/components/subscription/subscription-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -44,6 +45,7 @@ export function OnboardingForm() {
   const { data: session } = useSession();
   const [mode, setMode] = useState<"choose" | "create" | "join">("choose");
   const [isPending, setIsPending] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const createForm = useForm<CreateValues>({
     resolver: zodResolver(createFamilySchema),
@@ -61,7 +63,7 @@ export function OnboardingForm() {
       const result = await createFamily(values);
       if (result.success) {
         toast.success(t("familyCreated"));
-        window.location.href = `/${locale}/dashboard`;
+        setShowUpgrade(true);
       } else {
         toast.error(result.error ?? t("error"));
       }
@@ -90,131 +92,144 @@ export function OnboardingForm() {
     }
   }
 
-  if (mode === "choose") {
-    return (
-      <div className="grid gap-4">
-        <button
-          type="button"
-          onClick={() => setMode("create")}
-          className="flex items-center gap-4 rounded-xl border border-slate-200 p-5 text-left transition-colors hover:border-blue-300 hover:bg-blue-50/50"
-        >
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-50">
-            <Plus className="h-5 w-5 text-blue-600" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-slate-800">{t("createFamily")}</p>
-            <p className="mt-0.5 text-xs text-slate-500">{t("createFamilyDesc")}</p>
-          </div>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setMode("join")}
-          className="flex items-center gap-4 rounded-xl border border-slate-200 p-5 text-left transition-colors hover:border-green-300 hover:bg-green-50/50"
-        >
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-50">
-            <UserPlus className="h-5 w-5 text-green-600" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-slate-800">{t("joinFamily")}</p>
-            <p className="mt-0.5 text-xs text-slate-500">{t("joinFamilyDesc")}</p>
-          </div>
-        </button>
-      </div>
-    );
-  }
-
-  if (mode === "create") {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">{t("createFamily")}</CardTitle>
-          <CardDescription>{t("createFamilyDesc")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...createForm}>
-            <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-4">
-              <FormField
-                control={createForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("familyName")}</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder={t("familyNamePlaceholder")}
-                        autoFocus
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="flex gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setMode("choose")}
-                  disabled={isPending}
-                >
-                  {t("back")}
-                </Button>
-                <Button type="submit" className="flex-1" disabled={isPending}>
-                  {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {t("createFamily")}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    );
+  function handleUpgradeClose(open: boolean) {
+    if (!open) {
+      window.location.href = `/${locale}/dashboard`;
+    }
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">{t("joinFamily")}</CardTitle>
-        <CardDescription>{t("joinFamilyDesc")}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...joinForm}>
-          <form onSubmit={joinForm.handleSubmit(handleJoin)} className="space-y-4">
-            <FormField
-              control={joinForm.control}
-              name="code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("inviteCode")}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder={t("inviteCodePlaceholder")}
-                      autoFocus
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setMode("choose")}
-                disabled={isPending}
-              >
-                {t("back")}
-              </Button>
-              <Button type="submit" className="flex-1" disabled={isPending}>
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {t("joinFamily")}
-              </Button>
+    <>
+      {mode === "choose" && (
+        <div className="grid gap-4">
+          <button
+            type="button"
+            onClick={() => setMode("create")}
+            className="flex items-center gap-4 rounded-xl border border-slate-200 p-5 text-left transition-colors hover:border-blue-300 hover:bg-blue-50/50"
+          >
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-50">
+              <Plus className="h-5 w-5 text-blue-600" />
             </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+            <div>
+              <p className="text-sm font-semibold text-slate-800">{t("createFamily")}</p>
+              <p className="mt-0.5 text-xs text-slate-500">{t("createFamilyDesc")}</p>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMode("join")}
+            className="flex items-center gap-4 rounded-xl border border-slate-200 p-5 text-left transition-colors hover:border-green-300 hover:bg-green-50/50"
+          >
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-50">
+              <UserPlus className="h-5 w-5 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-800">{t("joinFamily")}</p>
+              <p className="mt-0.5 text-xs text-slate-500">{t("joinFamilyDesc")}</p>
+            </div>
+          </button>
+        </div>
+      )}
+
+      {mode === "create" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">{t("createFamily")}</CardTitle>
+            <CardDescription>{t("createFamilyDesc")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...createForm}>
+              <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-4">
+                <FormField
+                  control={createForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("familyName")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t("familyNamePlaceholder")}
+                          autoFocus
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setMode("choose")}
+                    disabled={isPending}
+                  >
+                    {t("back")}
+                  </Button>
+                  <Button type="submit" className="flex-1" disabled={isPending}>
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {t("createFamily")}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      )}
+
+      {mode === "join" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">{t("joinFamily")}</CardTitle>
+            <CardDescription>{t("joinFamilyDesc")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...joinForm}>
+              <form onSubmit={joinForm.handleSubmit(handleJoin)} className="space-y-4">
+                <FormField
+                  control={joinForm.control}
+                  name="code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("inviteCode")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t("inviteCodePlaceholder")}
+                          autoFocus
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setMode("choose")}
+                    disabled={isPending}
+                  >
+                    {t("back")}
+                  </Button>
+                  <Button type="submit" className="flex-1" disabled={isPending}>
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {t("joinFamily")}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      )}
+
+      <SubscriptionDialog
+        open={showUpgrade}
+        onOpenChange={handleUpgradeClose}
+        currentPlan="free"
+        context="onboarding"
+      />
+    </>
   );
 }
