@@ -254,7 +254,14 @@
     "noComments": "No comments yet",
     "addComment": "Write a comment...",
     "taskDetails": "Task Details",
-    "unknownUser": "Unknown"
+    "unknownUser": "Unknown",
+    "tabAll": "All",
+    "tabGeneral": "General",
+    "deleteTask": "Delete Task",
+    "deleted": "Task deleted.",
+    "deleteTitle": "Delete Task",
+    "deleteWarning": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+    "deleteConfirmPrompt": "Type DELETE to confirm."
   },
   "contacts": {
     "title": "Contacts",

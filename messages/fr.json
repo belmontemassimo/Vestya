@@ -254,7 +254,14 @@
     "noComments": "Aucun commentaire",
     "addComment": "Écrire un commentaire...",
     "taskDetails": "Détails de la tâche",
-    "unknownUser": "Inconnu"
+    "unknownUser": "Inconnu",
+    "tabAll": "Toutes",
+    "tabGeneral": "Général",
+    "deleteTask": "Supprimer la tâche",
+    "deleted": "Tâche supprimée.",
+    "deleteTitle": "Supprimer la tâche",
+    "deleteWarning": "Êtes-vous sûr de vouloir supprimer « {name} » ? Cette action est irréversible.",
+    "deleteConfirmPrompt": "Tapez DELETE pour confirmer."
   },
   "contacts": {
     "title": "Contacts",

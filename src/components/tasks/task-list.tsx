@@ -27,32 +27,19 @@ interface Task {
   assignee?: { id: string; name: string | null; image: string | null } | null;
 }
 
-interface FilterOption {
-  value: string;
-  label: string;
-}
-
 interface CurrentFilters {
   status?: string;
   priority?: string;
-  propertyId?: string;
-  search?: string;
 }
 
 interface TaskListProps {
   tasks: readonly Task[];
-  properties?: readonly { id: string; name: string }[];
   currentFilters?: CurrentFilters;
-  statusFilter?: string;
-  priorityFilter?: string;
-  propertyFilter?: string;
   onStatusChange?: (value: string) => void;
   onPriorityChange?: (value: string) => void;
-  onPropertyChange?: (value: string) => void;
-  statusOptions?: readonly FilterOption[];
-  priorityOptions?: readonly FilterOption[];
-  propertyOptions?: readonly FilterOption[];
   onAdd?: () => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 const STATUSES = ["TODO", "IN_PROGRESS", "WAITING", "DONE", "CANCELLED"] as const;
@@ -60,26 +47,15 @@ const PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
 
 export function TaskList({
   tasks,
-  properties = [],
   currentFilters,
-  statusFilter: statusFilterProp,
-  priorityFilter: priorityFilterProp,
-  propertyFilter: propertyFilterProp,
   onStatusChange,
   onPriorityChange,
-  onPropertyChange,
-  statusOptions,
-  priorityOptions,
-  propertyOptions,
   onAdd,
+  onEdit,
+  onDelete,
 }: TaskListProps) {
-  const statusFilter = statusFilterProp ?? currentFilters?.status ?? "all";
-  const priorityFilter = priorityFilterProp ?? currentFilters?.priority ?? "all";
-  const propertyFilter = propertyFilterProp ?? currentFilters?.propertyId ?? "all";
-
-  const resolvedStatusOptions = statusOptions ?? STATUSES.map((s) => ({ value: s, label: s }));
-  const resolvedPriorityOptions = priorityOptions ?? PRIORITIES.map((p) => ({ value: p, label: p }));
-  const resolvedPropertyOptions = propertyOptions ?? properties.map((p) => ({ value: p.id, label: p.name }));
+  const statusFilter = currentFilters?.status ?? "all";
+  const priorityFilter = currentFilters?.priority ?? "all";
   const t = useTranslations("tasks");
 
   return (
@@ -91,9 +67,9 @@ export function TaskList({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t("allStatuses")}</SelectItem>
-            {resolvedStatusOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
+            {STATUSES.map((s) => (
+              <SelectItem key={s} value={s}>
+                {t(`status.${s}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -105,23 +81,9 @@ export function TaskList({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t("allPriorities")}</SelectItem>
-            {resolvedPriorityOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={propertyFilter} onValueChange={onPropertyChange}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder={t("filterByProperty")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("allProperties")}</SelectItem>
-            {resolvedPropertyOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
+            {PRIORITIES.map((p) => (
+              <SelectItem key={p} value={p}>
+                {t(`priority.${p}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -158,6 +120,8 @@ export function TaskList({
               }
               assigneeName={task.assigneeName ?? task.assignee?.name ?? null}
               assigneeImage={task.assigneeImage ?? task.assignee?.image ?? null}
+              onEdit={onEdit ? () => onEdit(task.id) : undefined}
+              onDelete={onDelete ? () => onDelete(task.id) : undefined}
             />
           ))}
         </div>
