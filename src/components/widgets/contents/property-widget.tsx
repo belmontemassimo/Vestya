@@ -26,8 +26,8 @@ export function PropertyWidget({
   const hasCoordinates =
     property.latitude != null && property.longitude != null;
 
-  const resolvedCoverImage =
-    coverImage ?? getFirstImage(property.images);
+  const rawImage = coverImage ?? getFirstImage(property.images);
+  const resolvedCoverImage = rawImage ? toImageSrc(rawImage) : null;
 
   const showImage = displayMode === "image" && resolvedCoverImage;
 
@@ -81,4 +81,9 @@ function getFirstImage(images: unknown): string | null {
     return images[0];
   }
   return null;
+}
+
+function toImageSrc(keyOrUrl: string): string {
+  if (keyOrUrl.startsWith("http")) return keyOrUrl;
+  return `/api/storage/image?key=${encodeURIComponent(keyOrUrl)}`;
 }
