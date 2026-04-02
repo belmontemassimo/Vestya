@@ -50,6 +50,8 @@ export function DashboardGrid({
     [gridLayout],
   );
 
+  const isMobile = mounted && width < 640;
+
   if (widgets.length === 0 && !isEditing) {
     return (
       <div className="flex min-h-[300px] items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
@@ -60,7 +62,25 @@ export function DashboardGrid({
 
   return (
     <div ref={containerRef as RefObject<HTMLDivElement>}>
-      {mounted && (
+      {mounted && isMobile ? (
+        <div className="flex flex-col gap-4">
+          {widgets.map((widget) => (
+            <div key={widget.id} className="aspect-square w-full">
+              <WidgetRenderer
+                widget={widget}
+                dashboardData={dashboardData}
+                context={context}
+                propertyId={propertyId}
+                isEditing={isEditing}
+                onRemove={() => onRemoveWidget(widget.id)}
+                onUpdateConfig={(config) => onUpdateWidgetConfig?.(widget.id, config)}
+                gridW={12}
+                gridH={4}
+              />
+            </div>
+          ))}
+        </div>
+      ) : mounted ? (
         <ResponsiveGridLayout
           className="layout"
           width={width}
@@ -92,7 +112,7 @@ export function DashboardGrid({
             );
           })}
         </ResponsiveGridLayout>
-      )}
+      ) : null}
     </div>
   );
 }
