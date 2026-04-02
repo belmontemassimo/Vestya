@@ -65,6 +65,7 @@ interface TaskFormProps {
   members: readonly SelectOption[];
   contacts?: readonly SelectOption[];
   onSubmit: (values: TaskValues) => Promise<{ success: boolean; error?: string }>;
+  onSuccess?: () => void;
 }
 
 export function TaskForm({
@@ -75,6 +76,7 @@ export function TaskForm({
   members,
   contacts = [],
   onSubmit,
+  onSuccess,
 }: TaskFormProps) {
   const t = useTranslations("tasks");
   const router = useRouter();
@@ -121,7 +123,11 @@ export function TaskForm({
       const result = await onSubmit(resolved);
       if (result.success) {
         toast.success(isEditing ? t("updated") : t("created"));
-        router.push("/tasks");
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.push("/tasks");
+        }
       } else {
         toast.error(result.error ?? t("error"));
       }
@@ -302,7 +308,7 @@ export function TaskForm({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.back()}
+                onClick={() => onSuccess ? onSuccess() : router.back()}
               >
                 {t("cancel")}
               </Button>

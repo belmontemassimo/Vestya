@@ -70,7 +70,7 @@ export function PropertyContactsWidget({ contacts, propertyId }: PropertyContact
         )}
       </div>
       <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title={t("addContact")}>
-        <ContactForm onSubmit={handleCreate} />
+        <ContactForm onSubmit={handleCreate} onSuccess={() => setDialogOpen(false)} />
       </FormDialog>
     </>
   );

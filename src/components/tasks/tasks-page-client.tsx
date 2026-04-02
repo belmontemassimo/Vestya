@@ -202,6 +202,7 @@ export function TasksPageClient({
           showPropertyField={!activePropertyId}
           defaultValues={activePropertyId ? { propertyId: activePropertyId } : undefined}
           onSubmit={handleCreate}
+          onSuccess={() => setCreateDialogOpen(false)}
         />
       </FormDialog>
 
@@ -232,6 +233,7 @@ export function TasksPageClient({
                 : "",
             }}
             onSubmit={handleEdit}
+            onSuccess={() => setEditingTask(null)}
           />
         )}
       </FormDialog>

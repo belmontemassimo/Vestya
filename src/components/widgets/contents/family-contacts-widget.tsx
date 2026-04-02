@@ -95,7 +95,7 @@ export function FamilyContactsWidget({ contacts, propertyId }: FamilyContactsWid
         )}
       </div>
       <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title={t("addContact")}>
-        <ContactForm onSubmit={handleCreate} />
+        <ContactForm onSubmit={handleCreate} onSuccess={() => setDialogOpen(false)} />
       </FormDialog>
     </>
   );

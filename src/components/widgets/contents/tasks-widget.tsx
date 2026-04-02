@@ -110,7 +110,7 @@ export function TasksWidget({ tasks: initialTasks, propertyId, members = [], con
         )}
       </div>
       <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title={t("addTask")}>
-        <TaskForm properties={[]} members={members} contacts={contacts} showPropertyField={!propertyId} onSubmit={handleCreate} defaultValues={propertyId ? { propertyId } : undefined} />
+        <TaskForm properties={[]} members={members} contacts={contacts} showPropertyField={!propertyId} onSubmit={handleCreate} onSuccess={() => setDialogOpen(false)} defaultValues={propertyId ? { propertyId } : undefined} />
       </FormDialog>
     </>
   );

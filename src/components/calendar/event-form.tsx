@@ -53,6 +53,7 @@ interface EventFormProps {
   properties: readonly SelectOption[];
   contacts: readonly SelectOption[];
   onSubmit: (values: EventValues) => Promise<{ success: boolean; error?: string }>;
+  onSuccess?: () => void;
 }
 
 export function EventForm({
@@ -62,6 +63,7 @@ export function EventForm({
   properties,
   contacts,
   onSubmit,
+  onSuccess,
 }: EventFormProps) {
   const t = useTranslations("calendar");
   const router = useRouter();
@@ -89,7 +91,11 @@ export function EventForm({
       const result = await onSubmit(values);
       if (result.success) {
         toast.success(isEditing ? t("updated") : t("created"));
-        router.push("/calendar");
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.push("/calendar");
+        }
       } else {
         toast.error(result.error ?? t("error"));
       }
@@ -248,7 +254,7 @@ export function EventForm({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.back()}
+                onClick={() => onSuccess ? onSuccess() : router.back()}
               >
                 {t("cancel")}
               </Button>

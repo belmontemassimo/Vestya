@@ -60,6 +60,7 @@ interface SpendingFormProps {
   showPropertyField?: boolean;
   properties: readonly SelectOption[];
   onSubmit: (values: SpendingValues) => Promise<{ success: boolean; error?: string }>;
+  onSuccess?: () => void;
 }
 
 export function SpendingForm({
@@ -68,6 +69,7 @@ export function SpendingForm({
   showPropertyField = true,
   properties,
   onSubmit,
+  onSuccess,
 }: SpendingFormProps) {
   const t = useTranslations("spending");
   const router = useRouter();
@@ -98,7 +100,11 @@ export function SpendingForm({
       const result = await onSubmit(values);
       if (result.success) {
         toast.success(isEditing ? t("updated") : t("created"));
-        router.push("/spending");
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.push("/spending");
+        }
       } else {
         toast.error(result.error ?? t("error"));
       }
@@ -265,7 +271,7 @@ export function SpendingForm({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.back()}
+                onClick={() => onSuccess ? onSuccess() : router.back()}
               >
                 {t("cancel")}
               </Button>

@@ -138,6 +138,7 @@ export function CalendarPageClient({
           properties={properties}
           contacts={contacts}
           onSubmit={handleSubmit}
+          onSuccess={() => setDialogOpen(false)}
         />
       </FormDialog>
     </div>

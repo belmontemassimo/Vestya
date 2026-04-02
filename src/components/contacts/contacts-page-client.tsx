@@ -238,7 +238,7 @@ export function ContactsPageClient({
         onOpenChange={setCreateDialogOpen}
         title={t("addContact")}
       >
-        <ContactForm onSubmit={handleCreate} />
+        <ContactForm onSubmit={handleCreate} onSuccess={() => setCreateDialogOpen(false)} />
       </FormDialog>
 
       <FormDialog
@@ -261,6 +261,7 @@ export function ContactsPageClient({
             }}
             onSubmit={handleEdit}
             onPropertyLinksChange={handlePropertyLinksChange}
+            onSuccess={() => setEditingContact(null)}
           />
         )}
       </FormDialog>

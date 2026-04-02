@@ -69,6 +69,7 @@ export function SpendingPageClient({
         <SpendingForm
           properties={properties}
           onSubmit={handleSubmit}
+          onSuccess={() => setDialogOpen(false)}
         />
       </FormDialog>
     </div>

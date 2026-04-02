@@ -59,6 +59,7 @@ interface ContactFormProps {
   linkedPropertyIds?: string[];
   onSubmit: (values: ContactValues) => Promise<{ success: boolean; error?: string }>;
   onPropertyLinksChange?: (propertyIds: string[]) => Promise<void>;
+  onSuccess?: () => void;
 }
 
 export function ContactForm({
@@ -68,6 +69,7 @@ export function ContactForm({
   linkedPropertyIds = [],
   onSubmit,
   onPropertyLinksChange,
+  onSuccess,
 }: ContactFormProps) {
   const t = useTranslations("contacts");
   const router = useRouter();
@@ -114,7 +116,11 @@ export function ContactForm({
           await onPropertyLinksChange(selectedProperties);
         }
         toast.success(isEditing ? t("updated") : t("created"));
-        router.push("/contacts");
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.push("/contacts");
+        }
       } else {
         toast.error(result.error ?? t("error"));
       }
@@ -326,7 +332,7 @@ export function ContactForm({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.back()}
+                onClick={() => onSuccess ? onSuccess() : router.back()}
               >
                 {t("cancel")}
               </Button>

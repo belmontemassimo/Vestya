@@ -206,6 +206,7 @@ export function CalendarWidget({
           contacts={[...contacts]}
           showPropertyField={!propertyId}
           onSubmit={handleCreate}
+          onSuccess={() => setDialogOpen(false)}
           defaultValues={propertyId ? { propertyId } : undefined}
         />
       </FormDialog>
