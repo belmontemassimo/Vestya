@@ -290,11 +290,8 @@ function WeekView({ events, refDate }: { events: CalendarEvent[]; refDate: Date 
 
   const hours = [0, 3, 6, 9, 12, 15, 18, 21];
 
-  const weekMonthLabel = monday.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="mb-1 text-center text-[10px] font-semibold text-slate-600">{weekMonthLabel}</div>
       {/* Header */}
       <div className="flex border-b border-slate-100 pb-1">
         <div className="w-6 shrink-0" />
@@ -382,11 +379,8 @@ function MonthView({ events, refDate }: { events: CalendarEvent[]; refDate: Date
 
   const eventsByDate = useMemo(() => expandEventsByDate(events), [events]);
 
-  const monthLabel = refDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-1 text-center text-[10px] font-semibold text-slate-600">{monthLabel}</div>
       {/* Header */}
       <div className="mb-1 grid grid-cols-7">
         {DAYS_LETTER.map((n, i) => (
