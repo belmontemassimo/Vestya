@@ -3,8 +3,8 @@
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { WidgetHeader } from "@/components/widgets/widget-header";
 import { FormDialog } from "@/components/shared/form-dialog";
 import { EventForm } from "@/components/calendar/event-form";
 import { createEvent } from "@/actions/event.actions";
@@ -45,10 +45,24 @@ function getEventColor(index: number): string {
   return EVENT_COLORS[index % EVENT_COLORS.length];
 }
 
+type CalendarView = "month" | "week" | "day";
+const VIEWS: CalendarView[] = ["month", "week", "day"];
+
 export function CalendarWidget({ events, gridW, gridH, propertyId, properties = [], contacts = [] }: CalendarWidgetProps) {
   const t = useTranslations("calendar");
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [view, setView] = useState<CalendarView>("month");
+
+  const viewIndex = VIEWS.indexOf(view);
+
+  function prevView() {
+    setView(VIEWS[(viewIndex - 1 + VIEWS.length) % VIEWS.length]);
+  }
+
+  function nextView() {
+    setView(VIEWS[(viewIndex + 1) % VIEWS.length]);
+  }
 
   async function handleCreate(values: Record<string, unknown>) {
     const payload = {
@@ -71,11 +85,41 @@ export function CalendarWidget({ events, gridW, gridH, propertyId, properties = 
   return (
     <>
       <div className="flex h-full flex-col">
-        <WidgetHeader title={t("title")} onAdd={() => setDialogOpen(true)} addLabel={t("addEvent")} />
+        {/* Header with view toggle */}
+        <div className="mb-2 flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); prevView(); }}
+              className="rounded-md p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+            <span className="min-w-[3.5rem] text-center text-xs font-semibold text-slate-700 capitalize">
+              {t(view)}
+            </span>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); nextView(); }}
+              className="rounded-md p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDialogOpen(true); }}
+            className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+          >
+            <Plus className="h-3 w-3" />
+            {t("addEvent")}
+          </button>
+        </div>
+
         <div className="min-h-0 flex-1">
-          {gridW < 6 ? (
+          {view === "day" ? (
             <DayView events={events} />
-          ) : gridH < 6 ? (
+          ) : view === "week" ? (
             <WeekView events={events} />
           ) : (
             <MonthView events={events} />

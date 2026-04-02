@@ -331,7 +331,12 @@
     "today": "Today",
     "month": "Month",
     "week": "Week",
-    "list": "List"
+    "day": "Day",
+    "list": "List",
+    "allProperties": "All properties",
+    "noProperty": "No property",
+    "allContacts": "All contacts",
+    "noContact": "No contact"
   },
   "documents": {
     "title": "Documents",

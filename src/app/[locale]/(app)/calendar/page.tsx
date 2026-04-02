@@ -47,6 +47,9 @@ export default async function CalendarPage() {
     start: event.startAt.toISOString(),
     end: event.endAt?.toISOString(),
     allDay: event.allDay,
+    propertyId: event.propertyId,
+    propertyName: event.property?.name ?? null,
+    linkedContactId: event.linkedContactId,
   }));
 
   const propertyOptions = properties.map((p) => ({
