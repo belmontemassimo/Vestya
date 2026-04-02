@@ -9,7 +9,6 @@ import { Loader2, Upload, X, Check, ChevronsUpDown, Plus, Search } from "lucide-
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Popover,
   PopoverContent,
@@ -294,8 +293,7 @@ export function DocumentUploadForm({
                   </div>
 
                   {/* Scrollable tag list */}
-                  <ScrollArea className="max-h-52">
-                    <div className="p-1">
+                  <div className="max-h-52 overflow-y-auto overscroll-contain p-1">
                       {propertyTags.length > 0 && (
                         <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                           Properties
@@ -331,8 +329,7 @@ export function DocumentUploadForm({
                       {filteredOptions.length === 0 && !showCreateOption && (
                         <p className="px-2 py-3 text-center text-xs text-slate-400">{t("noTagsFound")}</p>
                       )}
-                    </div>
-                  </ScrollArea>
+                  </div>
 
                   {/* Create new tag */}
                   {showCreateOption && (
