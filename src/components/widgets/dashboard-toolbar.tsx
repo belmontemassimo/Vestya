@@ -35,7 +35,7 @@ export function DashboardToolbar({
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <Button variant="outline" size="sm" onClick={onAddWidget}>
         <Plus className="mr-1.5 h-3.5 w-3.5" />
         {t("addWidget")}

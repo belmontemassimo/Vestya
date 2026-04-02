@@ -56,8 +56,8 @@ export function SpendingTable({ records }: SpendingTableProps) {
   }
 
   return (
-    <div className="rounded-xl border border-slate-200">
-      <Table>
+    <div className="rounded-xl border border-slate-200 overflow-x-auto">
+      <Table className="min-w-[640px]">
         <TableHeader>
           <TableRow>
             <TableHead>{t("date")}</TableHead>

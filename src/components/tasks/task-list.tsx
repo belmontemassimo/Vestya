@@ -60,9 +60,9 @@ export function TaskList({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center">
         <Select value={statusFilter} onValueChange={onStatusChange}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-full sm:w-[160px]">
             <SelectValue placeholder={t("filterByStatus")} />
           </SelectTrigger>
           <SelectContent>
@@ -76,7 +76,7 @@ export function TaskList({
         </Select>
 
         <Select value={priorityFilter} onValueChange={onPriorityChange}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-full sm:w-[160px]">
             <SelectValue placeholder={t("filterByPriority")} />
           </SelectTrigger>
           <SelectContent>

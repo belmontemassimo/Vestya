@@ -55,7 +55,7 @@ export function ContactList({
     <div className="space-y-4">
       <div className="flex items-center gap-3">
         <Select value={categoryFilter} onValueChange={onCategoryChange ?? (() => {})}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder={t("filterByCategory")} />
           </SelectTrigger>
           <SelectContent>

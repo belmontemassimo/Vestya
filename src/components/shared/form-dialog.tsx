@@ -25,12 +25,12 @@ export function FormDialog({
 }: FormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] p-0">
+      <DialogContent className="w-[calc(100%-2rem)] max-w-2xl max-h-[90vh] p-0">
         <VisuallyHidden>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{title}</DialogDescription>
         </VisuallyHidden>
-        <ScrollArea className="max-h-[85vh] p-6">{children}</ScrollArea>
+        <ScrollArea className="max-h-[85vh] p-4 sm:p-6">{children}</ScrollArea>
       </DialogContent>
     </Dialog>
   );

@@ -102,10 +102,10 @@ export function DashboardClient({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-6 text-white shadow-md">
-        <div className="flex items-center justify-between">
+      <div className="rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-4 sm:p-6 text-white shadow-md">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-xl sm:text-2xl font-bold">
               {t("welcome", { name: session?.user?.name ?? "" })}
             </h1>
             {session?.user?.familyName && (

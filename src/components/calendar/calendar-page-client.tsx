@@ -101,7 +101,7 @@ export function CalendarPageClient({
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -116,7 +116,7 @@ export function CalendarPageClient({
         </Select>
 
         <Select value={contactFilter} onValueChange={setContactFilter}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
