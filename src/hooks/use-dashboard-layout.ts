@@ -54,6 +54,18 @@ export function useDashboardLayout(initial: {
     setHasChanges(true);
   }, []);
 
+  const updateWidgetConfig = useCallback(
+    (widgetId: string, config: Record<string, unknown>) => {
+      setWidgets((prev) =>
+        prev.map((w) =>
+          w.id === widgetId ? { ...w, config: { ...w.config, ...config } } : w,
+        ),
+      );
+      setHasChanges(true);
+    },
+    [],
+  );
+
   const resetChanges = useCallback(() => {
     setWidgets(originalWidgets);
     setGridLayout(originalLayout);
@@ -67,6 +79,7 @@ export function useDashboardLayout(initial: {
     addWidget,
     removeWidget,
     updateLayout,
+    updateWidgetConfig,
     resetChanges,
   };
 }

@@ -54,6 +54,7 @@ export function DashboardClient({
     addWidget,
     removeWidget,
     updateLayout,
+    updateWidgetConfig,
     resetChanges,
   } = useDashboardLayout(layout);
 
@@ -132,6 +133,7 @@ export function DashboardClient({
         isEditing={isEditing}
         onLayoutChange={updateLayout}
         onRemoveWidget={removeWidget}
+        onUpdateWidgetConfig={updateWidgetConfig}
       />
 
       <WidgetPicker

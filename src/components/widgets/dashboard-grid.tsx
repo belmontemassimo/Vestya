@@ -21,6 +21,7 @@ interface DashboardGridProps {
   isEditing: boolean;
   onLayoutChange: (layout: LayoutItem[]) => void;
   onRemoveWidget: (widgetId: string) => void;
+  onUpdateWidgetConfig?: (widgetId: string, config: Record<string, unknown>) => void;
 }
 
 export function DashboardGrid({
@@ -32,6 +33,7 @@ export function DashboardGrid({
   isEditing,
   onLayoutChange,
   onRemoveWidget,
+  onUpdateWidgetConfig,
 }: DashboardGridProps) {
   const t = useTranslations("widgets");
   const { width, containerRef, mounted } = useContainerWidth();
@@ -82,6 +84,7 @@ export function DashboardGrid({
                   propertyId={propertyId}
                   isEditing={isEditing}
                   onRemove={() => onRemoveWidget(widget.id)}
+                  onUpdateConfig={(config) => onUpdateWidgetConfig?.(widget.id, config)}
                   gridW={item?.w ?? 4}
                   gridH={item?.h ?? 3}
                 />

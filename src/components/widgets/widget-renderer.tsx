@@ -24,6 +24,7 @@ interface WidgetRendererProps {
   propertyId?: string;
   isEditing: boolean;
   onRemove: () => void;
+  onUpdateConfig?: (config: Record<string, unknown>) => void;
   gridW: number;
   gridH: number;
 }
@@ -55,6 +56,7 @@ export function WidgetRenderer({
   propertyId,
   isEditing,
   onRemove,
+  onUpdateConfig,
   gridW,
   gridH,
 }: WidgetRendererProps) {
@@ -78,6 +80,8 @@ export function WidgetRenderer({
         dashboardData={dashboardData}
         context={context}
         propertyId={propertyId}
+        isEditing={isEditing}
+        onUpdateConfig={onUpdateConfig}
         gridW={gridW}
         gridH={gridH}
       />
@@ -90,6 +94,8 @@ function WidgetContent({
   dashboardData,
   context,
   propertyId,
+  isEditing,
+  onUpdateConfig,
   gridW,
   gridH,
 }: {
@@ -97,6 +103,8 @@ function WidgetContent({
   dashboardData: Record<string, unknown>;
   context: "family" | "property";
   propertyId?: string;
+  isEditing: boolean;
+  onUpdateConfig?: (config: Record<string, unknown>) => void;
   gridW: number;
   gridH: number;
 }) {
@@ -156,6 +164,12 @@ function WidgetContent({
           property={property}
           displayMode={(widget.config.displayMode as "map" | "image") ?? "map"}
           coverImage={widget.config.coverImage as string | undefined}
+          isEditing={isEditing}
+          onChangeImage={
+            onUpdateConfig
+              ? (key: string) => onUpdateConfig({ coverImage: key, displayMode: "image" })
+              : undefined
+          }
         />
       );
     }

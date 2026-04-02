@@ -524,7 +524,8 @@
     "displayImageDesc": "Upload a photo to use as the widget cover",
     "uploadCoverImage": "Upload a cover image for this property",
     "dropOrClickImage": "Click below to select an image",
-    "selectImage": "Select Image"
+    "selectImage": "Select Image",
+    "changeImage": "Change image"
   },
   "messages": {
     "title": "Messages",

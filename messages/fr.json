@@ -524,7 +524,8 @@
     "displayImageDesc": "Télécharger une photo comme couverture du widget",
     "uploadCoverImage": "Télécharger une image de couverture",
     "dropOrClickImage": "Cliquez ci-dessous pour sélectionner une image",
-    "selectImage": "Sélectionner une image"
+    "selectImage": "Sélectionner une image",
+    "changeImage": "Changer l'image"
   },
   "messages": {
     "title": "Messages",
