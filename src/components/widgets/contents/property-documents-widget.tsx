@@ -6,7 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import { FileText } from "lucide-react";
 import { WidgetHeader } from "@/components/widgets/widget-header";
 import { FormDialog } from "@/components/shared/form-dialog";
-import { DocumentUploadForm } from "@/components/documents/document-upload-form";
+import { DocumentUploadForm, type TagOption } from "@/components/documents/document-upload-form";
 import { createDocumentRecord } from "@/actions/document.actions";
 
 interface PropertyDocumentsWidgetProps {
@@ -17,9 +17,11 @@ interface PropertyDocumentsWidgetProps {
     createdAt: string;
   }>;
   propertyId?: string;
+  tagOptions?: readonly TagOption[];
+  autoSelectedTags?: string[];
 }
 
-export function PropertyDocumentsWidget({ documents, propertyId }: PropertyDocumentsWidgetProps) {
+export function PropertyDocumentsWidget({ documents, propertyId, tagOptions = [], autoSelectedTags }: PropertyDocumentsWidgetProps) {
   const t = useTranslations("documents");
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -70,7 +72,8 @@ export function PropertyDocumentsWidget({ documents, propertyId }: PropertyDocum
       </div>
       <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title={t("uploadDocument")}>
         <DocumentUploadForm
-          tagOptions={[]}
+          tagOptions={tagOptions}
+          defaultSelectedTags={autoSelectedTags}
           onCreateRecord={handleCreateRecord}
           onComplete={handleComplete}
         />

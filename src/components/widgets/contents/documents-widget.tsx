@@ -10,7 +10,7 @@ import { getDocumentDownloadUrl, createDocumentRecord } from "@/actions/document
 import { DocumentPreview } from "@/components/documents/document-preview";
 import { WidgetHeader } from "@/components/widgets/widget-header";
 import { FormDialog } from "@/components/shared/form-dialog";
-import { DocumentUploadForm } from "@/components/documents/document-upload-form";
+import { DocumentUploadForm, type TagOption } from "@/components/documents/document-upload-form";
 
 interface DocumentTag {
   id: string;
@@ -29,6 +29,7 @@ interface WidgetDocument {
 interface DocumentsWidgetProps {
   documents: WidgetDocument[];
   propertyId?: string;
+  tagOptions?: readonly TagOption[];
 }
 
 const TAG_COLORS: Record<string, string> = {
@@ -45,7 +46,7 @@ function parseTags(tags: unknown): DocumentTag[] {
   );
 }
 
-export function DocumentsWidget({ documents, propertyId }: DocumentsWidgetProps) {
+export function DocumentsWidget({ documents, propertyId, tagOptions = [] }: DocumentsWidgetProps) {
   const t = useTranslations("documents");
   const router = useRouter();
   const [preview, setPreview] = useState<{
@@ -150,7 +151,7 @@ export function DocumentsWidget({ documents, propertyId }: DocumentsWidgetProps)
       />
 
       <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title="Upload Document">
-        <DocumentUploadForm tagOptions={[]} onCreateRecord={handleCreateRecord} onComplete={handleUploadComplete} />
+        <DocumentUploadForm tagOptions={tagOptions} onCreateRecord={handleCreateRecord} onComplete={handleUploadComplete} />
       </FormDialog>
     </>
   );

@@ -36,6 +36,7 @@ export default async function PropertyDetailPage({
     income,
     financialRecords,
     reminders,
+    memberships,
   ] = await Promise.all([
     getPropertyDashboard(propertyId),
 
@@ -124,6 +125,11 @@ export default async function PropertyDetailPage({
       orderBy: { remindAt: "asc" },
       take: 10,
     }),
+
+    prisma.familyMembership.findMany({
+      where: { familyId, status: "ACTIVE" },
+      include: { user: { select: { id: true, name: true, email: true } } },
+    }),
   ]);
 
   const layout = layoutResult.success ? layoutResult.data : null;
@@ -148,6 +154,15 @@ export default async function PropertyDetailPage({
     relationshipType: pc.relationshipType,
   }));
 
+  const tagOptions = [
+    { value: propertyId, label: property.name, type: "property" as const },
+    ...memberships.map((m) => ({
+      value: m.user.id,
+      label: m.user.name ?? m.user.email,
+      type: "member" as const,
+    })),
+  ];
+
   const dashboardData = {
     tasks: JSON.parse(JSON.stringify(tasks)),
     events: JSON.parse(JSON.stringify(events)),
@@ -161,6 +176,8 @@ export default async function PropertyDetailPage({
       date: r.date.toISOString(),
     })),
     reminders: JSON.parse(JSON.stringify(reminders)),
+    tagOptions,
+    autoSelectedTags: [propertyId],
   };
 
   return (

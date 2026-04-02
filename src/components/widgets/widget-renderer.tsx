@@ -143,10 +143,10 @@ function WidgetContent({
       return <PropertyRemindersWidget reminders={d.reminders ?? []} />;
 
     case "family-paperwork":
-      return <DocumentsWidget documents={d.documents ?? []} propertyId={pid} />;
+      return <DocumentsWidget documents={d.documents ?? []} propertyId={pid} tagOptions={d.tagOptions ?? []} />;
 
     case "property-documents":
-      return <PropertyDocumentsWidget documents={d.documents ?? []} propertyId={pid} />;
+      return <PropertyDocumentsWidget documents={d.documents ?? []} propertyId={pid} tagOptions={d.tagOptions ?? []} autoSelectedTags={d.autoSelectedTags} />;
 
     case "property": {
       const properties = d.properties ?? [];

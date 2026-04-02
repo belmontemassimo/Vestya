@@ -94,6 +94,15 @@ export default async function DashboardPage() {
 
   const layout = layoutResult.success ? layoutResult.data : null;
 
+  const tagOptions = [
+    ...properties.map((p) => ({ value: p.id, label: p.name, type: "property" as const })),
+    ...members.map((m) => ({
+      value: m.user.id,
+      label: m.user.name ?? m.user.email,
+      type: "member" as const,
+    })),
+  ];
+
   const dashboardData = {
     tasks: JSON.parse(JSON.stringify(tasks)),
     events: JSON.parse(JSON.stringify(events)),
@@ -119,6 +128,7 @@ export default async function DashboardPage() {
       longitude: p.longitude,
       images: p.images,
     })),
+    tagOptions,
   };
 
   return (

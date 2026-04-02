@@ -39,6 +39,7 @@ export interface TagOption {
 
 interface DocumentUploadFormProps {
   tagOptions: readonly TagOption[];
+  defaultSelectedTags?: string[];
   onCreateRecord: (values: {
     name: string;
     tags: Array<{ id: string; label: string; type: string }>;
@@ -51,6 +52,7 @@ interface DocumentUploadFormProps {
 
 export function DocumentUploadForm({
   tagOptions,
+  defaultSelectedTags,
   onCreateRecord,
   onComplete,
 }: DocumentUploadFormProps) {
@@ -58,7 +60,7 @@ export function DocumentUploadForm({
   const [file, setFile] = useState<File | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>(defaultSelectedTags ?? []);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<UploadValues>({

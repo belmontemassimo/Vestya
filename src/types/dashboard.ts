@@ -109,4 +109,10 @@ export interface DashboardData {
     date: string;
     notes: string | null;
   }>;
+  tagOptions?: Array<{
+    value: string;
+    label: string;
+    type: "property" | "member" | "contact";
+  }>;
+  autoSelectedTags?: string[];
 }
