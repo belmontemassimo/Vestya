@@ -82,10 +82,10 @@ async function main() {
   // ------------------------------------------------------------------
   await prisma.familyMembership.createMany({
     data: [
-      { familyId: family.id, userId: massimo.id, role: "OWNER" },
+      { familyId: family.id, userId: massimo.id, role: "ADMIN" },
       { familyId: family.id, userId: sophie.id, role: "ADMIN" },
       { familyId: family.id, userId: lucas.id, role: "MEMBER" },
-      { familyId: family.id, userId: viewer.id, role: "VIEWER" },
+      { familyId: family.id, userId: viewer.id, role: "MEMBER" },
     ],
   });
 

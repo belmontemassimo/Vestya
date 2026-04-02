@@ -123,7 +123,7 @@ export async function toggleTaskDone(
 ): Promise<ActionResult<Task>> {
   try {
     const session = await requireFamilyAuth();
-    checkPermission(session.user.familyRole, "task:update");
+    checkPermission(session.user.familyRole, "task:complete");
 
     const task = await prisma.task.findFirst({
       where: { id, familyId: session.user.familyId, deletedAt: null },

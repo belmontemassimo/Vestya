@@ -29,12 +29,12 @@ import { inviteMember } from "@/actions/family.actions";
 
 const inviteSchema = z.object({
   email: z.string().email(),
-  role: z.enum(["ADMIN", "MEMBER", "VIEWER"]),
+  role: z.enum(["ADMIN", "MEMBER"]),
 });
 
 type InviteValues = z.infer<typeof inviteSchema>;
 
-const ROLES = ["ADMIN", "MEMBER", "VIEWER"] as const;
+const ROLES = ["ADMIN", "MEMBER"] as const;
 
 export function InviteForm() {
   const t = useTranslations("members");

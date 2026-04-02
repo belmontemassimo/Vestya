@@ -59,7 +59,7 @@ export async function createFamily(
         memberships: {
           create: {
             userId: session.user.id,
-            role: "OWNER",
+            role: "ADMIN",
             status: "ACTIVE",
           },
         },
@@ -285,19 +285,19 @@ export async function removeMember(
       return { success: false, error: "Membership not found." };
     }
 
-    if (membership.role === "OWNER") {
-      const ownerCount = await prisma.familyMembership.count({
+    if (membership.role === "ADMIN" || membership.role === "OWNER") {
+      const adminCount = await prisma.familyMembership.count({
         where: {
           familyId: session.user.familyId,
-          role: "OWNER",
+          role: { in: ["ADMIN", "OWNER"] },
           status: "ACTIVE",
         },
       });
 
-      if (ownerCount <= 1) {
+      if (adminCount <= 1) {
         return {
           success: false,
-          error: "Cannot remove the last owner. Transfer ownership first.",
+          error: "Cannot remove the last admin.",
         };
       }
     }

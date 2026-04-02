@@ -4,7 +4,6 @@ import { FamilyRole } from "@prisma/client";
 const INVITABLE_ROLES = [
   FamilyRole.ADMIN,
   FamilyRole.MEMBER,
-  FamilyRole.VIEWER,
 ] as const;
 
 export const createFamilySchema = z.object({
@@ -25,7 +24,7 @@ export const inviteMemberSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   role: z.enum(
     INVITABLE_ROLES.map((r) => r as string) as [string, ...string[]],
-    { message: "Role must be ADMIN, MEMBER, or VIEWER" },
+    { message: "Role must be ADMIN or MEMBER" },
   ) as z.ZodType<(typeof INVITABLE_ROLES)[number]>,
 });
 
