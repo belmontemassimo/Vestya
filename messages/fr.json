@@ -179,7 +179,12 @@
     "noContacts": "Aucun contact lié",
     "noDocuments": "Aucun document",
     "noFinancials": "Aucun enregistrement financier",
-    "noOccupancies": "Aucun enregistrement d'occupation"
+    "noOccupancies": "Aucun enregistrement d'occupation",
+    "deleteProperty": "Supprimer la propriété",
+    "deleteTitle": "Supprimer la propriété",
+    "deleteWarning": "Cela supprimera définitivement « {name} » ainsi que toutes les données associées : tâches, documents, événements, contacts et dépenses. Cette action est irréversible.",
+    "deleteConfirmPrompt": "Tapez DELETE pour confirmer.",
+    "deleted": "Propriété supprimée."
   },
   "tasks": {
     "title": "Tâches",

@@ -21,9 +21,11 @@ interface Property {
 
 interface PropertyListProps {
   properties: readonly Property[];
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
-export function PropertyList({ properties }: PropertyListProps) {
+export function PropertyList({ properties, onEdit, onDelete }: PropertyListProps) {
   const t = useTranslations("properties");
 
   if (properties.length === 0) {
@@ -53,6 +55,8 @@ export function PropertyList({ properties }: PropertyListProps) {
           address={property.address ?? property.addressLine1 ?? null}
           city={property.city}
           country={property.country}
+          onEdit={() => onEdit?.(property.id)}
+          onDelete={() => onDelete?.(property.id)}
         />
       ))}
     </div>

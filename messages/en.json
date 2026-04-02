@@ -179,7 +179,12 @@
     "noContacts": "No contacts linked",
     "noDocuments": "No documents",
     "noFinancials": "No financial records",
-    "noOccupancies": "No occupancy records"
+    "noOccupancies": "No occupancy records",
+    "deleteProperty": "Delete Property",
+    "deleteTitle": "Delete Property",
+    "deleteWarning": "This will permanently delete \"{name}\" and all related data including tasks, documents, events, contacts, and spending records. This action cannot be undone.",
+    "deleteConfirmPrompt": "Type DELETE to confirm.",
+    "deleted": "Property deleted."
   },
   "tasks": {
     "title": "Tasks",
