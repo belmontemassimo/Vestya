@@ -16,15 +16,17 @@ export function createDefaultFamilyLayout(): {
     { id: "w4", type: "upcoming-reminders", config: {} },
     { id: "w5", type: "family-paperwork", config: {} },
     { id: "w6", type: "messages", config: {} },
+    { id: "w7", type: "calendar", config: {} },
   ];
 
   const gridLayout: LayoutItem[] = [
-    { i: "w1", x: 0, y: 0, w: 6, h: 4, minW: MIN_W, minH: MIN_H },
-    { i: "w2", x: 6, y: 0, w: 6, h: 5, minW: MIN_W, minH: MIN_H },
-    { i: "w3", x: 0, y: 4, w: 4, h: 4, minW: MIN_W, minH: MIN_H },
-    { i: "w4", x: 4, y: 4, w: 4, h: 4, minW: MIN_W, minH: MIN_H },
-    { i: "w5", x: 8, y: 4, w: 4, h: 4, minW: MIN_W, minH: MIN_H },
-    { i: "w6", x: 0, y: 8, w: 4, h: 5, minW: MIN_W, minH: MIN_H },
+    { i: "w1", x: 0, y: 6, w: 4, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w2", x: 0, y: 0, w: 8, h: 6, minW: MIN_W, minH: MIN_H },
+    { i: "w3", x: 8, y: 10, w: 4, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w4", x: 4, y: 6, w: 4, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w5", x: 0, y: 10, w: 8, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w6", x: 8, y: 6, w: 4, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w7", x: 8, y: 0, w: 4, h: 6, minW: MIN_W, minH: MIN_H },
   ];
 
   return { widgets, gridLayout };
