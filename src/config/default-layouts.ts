@@ -46,12 +46,12 @@ export function createDefaultPropertyLayout(): {
   ];
 
   const gridLayout: LayoutItem[] = [
-    { i: "w1", x: 0, y: 0, w: 6, h: 4, minW: MIN_W, minH: MIN_H },
-    { i: "w2", x: 6, y: 0, w: 6, h: 5, minW: MIN_W, minH: MIN_H },
-    { i: "w3", x: 0, y: 4, w: 4, h: 4, minW: MIN_W, minH: MIN_H },
-    { i: "w4", x: 4, y: 4, w: 8, h: 4, minW: MIN_W, minH: MIN_H },
-    { i: "w5", x: 0, y: 8, w: 4, h: 4, minW: MIN_W, minH: MIN_H },
-    { i: "w6", x: 4, y: 8, w: 4, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w1", x: 6, y: 4, w: 6, h: 6, minW: MIN_W, minH: MIN_H },
+    { i: "w2", x: 0, y: 0, w: 6, h: 6, minW: MIN_W, minH: MIN_H },
+    { i: "w3", x: 6, y: 0, w: 6, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w4", x: 0, y: 6, w: 6, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w5", x: 0, y: 10, w: 6, h: 4, minW: MIN_W, minH: MIN_H },
+    { i: "w6", x: 6, y: 10, w: 6, h: 4, minW: MIN_W, minH: MIN_H },
   ];
 
   return { widgets, gridLayout };
