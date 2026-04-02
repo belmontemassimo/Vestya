@@ -88,12 +88,6 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border pt-8 text-center">
-        <p className="text-sm text-muted-foreground">
-          Vestya &mdash; Private family management dashboard
-        </p>
-      </footer>
     </div>
   );
 }

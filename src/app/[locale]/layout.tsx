@@ -5,6 +5,7 @@ import { routing } from "@/i18n/routing";
 import { SessionProvider } from "next-auth/react";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { CookieBanner } from "@/components/shared/cookie-banner";
 import { Toaster } from "sonner";
 
 interface LocaleLayoutProps {
@@ -33,6 +34,7 @@ export default async function LocaleLayout({
             disableTransitionOnChange
           >
             {children}
+            <CookieBanner />
             <Toaster position="top-right" richColors closeButton />
           </ThemeProvider>
         </QueryProvider>
