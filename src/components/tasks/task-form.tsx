@@ -14,7 +14,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -35,6 +37,8 @@ const CATEGORIES = [
   "EMERGENCY", "OTHER",
 ] as const;
 
+const CONTACT_PREFIX = "contact:";
+
 const taskSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
@@ -42,6 +46,7 @@ const taskSchema = z.object({
   priority: z.enum(PRIORITIES),
   propertyId: z.string().optional(),
   assignedTo: z.string().optional(),
+  assignedContact: z.string().optional(),
   dueAt: z.string().optional(),
 });
 
@@ -58,6 +63,7 @@ interface TaskFormProps {
   showPropertyField?: boolean;
   properties: readonly SelectOption[];
   members: readonly SelectOption[];
+  contacts?: readonly SelectOption[];
   onSubmit: (values: TaskValues) => Promise<{ success: boolean; error?: string }>;
 }
 
@@ -67,11 +73,17 @@ export function TaskForm({
   showPropertyField = true,
   properties,
   members,
+  contacts = [],
   onSubmit,
 }: TaskFormProps) {
   const t = useTranslations("tasks");
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
+
+  // Compute the composite assignee value for the form (member id or contact:id)
+  const initialAssignee = defaultValues?.assignedContact
+    ? `${CONTACT_PREFIX}${defaultValues.assignedContact}`
+    : defaultValues?.assignedTo ?? "__none__";
 
   const form = useForm<TaskValues>({
     resolver: zodResolver(taskSchema),
@@ -81,16 +93,32 @@ export function TaskForm({
       category: "OTHER",
       priority: "MEDIUM",
       propertyId: "",
-      assignedTo: "",
+      assignedTo: initialAssignee,
       dueAt: "",
       ...defaultValues,
+      // Override assignedTo with composite value after spread
+      ...(defaultValues ? { assignedTo: initialAssignee } : {}),
     },
   });
 
   async function handleSubmit(values: TaskValues) {
     setIsPending(true);
     try {
-      const result = await onSubmit(values);
+      const { assignedTo: rawAssignee, ...rest } = values;
+      const resolved: TaskValues = { ...rest };
+
+      if (rawAssignee && rawAssignee.startsWith(CONTACT_PREFIX)) {
+        resolved.assignedContact = rawAssignee.slice(CONTACT_PREFIX.length);
+        resolved.assignedTo = undefined;
+      } else if (rawAssignee && rawAssignee !== "__none__") {
+        resolved.assignedTo = rawAssignee;
+        resolved.assignedContact = undefined;
+      } else {
+        resolved.assignedTo = undefined;
+        resolved.assignedContact = undefined;
+      }
+
+      const result = await onSubmit(resolved);
       if (result.success) {
         toast.success(isEditing ? t("updated") : t("created"));
         router.push("/tasks");
@@ -216,11 +244,27 @@ export function TaskForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {members.map((m) => (
-                          <SelectItem key={m.value} value={m.value}>
-                            {m.label}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="__none__">{t("noAssignee")}</SelectItem>
+                        {members.length > 0 && (
+                          <SelectGroup>
+                            <SelectLabel>{t("membersGroup")}</SelectLabel>
+                            {members.map((m) => (
+                              <SelectItem key={m.value} value={m.value}>
+                                {m.label}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        )}
+                        {contacts.length > 0 && (
+                          <SelectGroup>
+                            <SelectLabel>{t("contactsGroup")}</SelectLabel>
+                            {contacts.map((c) => (
+                              <SelectItem key={c.value} value={`${CONTACT_PREFIX}${c.value}`}>
+                                {c.label}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />

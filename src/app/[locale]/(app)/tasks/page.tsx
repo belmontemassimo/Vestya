@@ -40,7 +40,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
     ];
   }
 
-  const [tasks, properties, memberships] = await Promise.all([
+  const [tasks, properties, memberships, contacts] = await Promise.all([
     prisma.task.findMany({
       where,
       include: {
@@ -61,6 +61,12 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
       where: { familyId, status: "ACTIVE" },
       include: { user: { select: { id: true, name: true } } },
     }),
+
+    prisma.contact.findMany({
+      where: { familyId, deletedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   const members = memberships.map((m) => ({
@@ -68,11 +74,17 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
     label: m.user.name ?? m.user.id,
   }));
 
+  const contactOptions = contacts.map((c) => ({
+    value: c.id,
+    label: c.name,
+  }));
+
   return (
     <TasksPageClient
       tasks={tasks}
       properties={properties}
       members={members}
+      contacts={contactOptions}
       currentFilters={{
         status: searchParams.status,
         priority: searchParams.priority,

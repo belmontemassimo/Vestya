@@ -20,6 +20,7 @@ interface TasksPageClientProps {
   tasks: Parameters<typeof TaskList>[0]["tasks"];
   properties: Parameters<typeof TaskList>[0]["properties"];
   members: readonly SelectOption[];
+  contacts?: readonly SelectOption[];
   currentFilters: Parameters<typeof TaskList>[0]["currentFilters"];
 }
 
@@ -27,6 +28,7 @@ export function TasksPageClient({
   tasks,
   properties,
   members,
+  contacts = [],
   currentFilters,
 }: TasksPageClientProps) {
   const t = useTranslations("tasks");
@@ -89,6 +91,7 @@ export function TasksPageClient({
         <TaskForm
           properties={propertyOptions}
           members={members}
+          contacts={contacts}
           onSubmit={handleSubmit}
         />
       </FormDialog>

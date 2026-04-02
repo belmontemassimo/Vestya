@@ -35,7 +35,7 @@ export default async function TaskDetailPage({
     notFound();
   }
 
-  const [properties, familyMembers] = await Promise.all([
+  const [properties, familyMembers, contacts] = await Promise.all([
     prisma.property.findMany({
       where: { familyId, deletedAt: null },
       select: { id: true, name: true },
@@ -47,6 +47,12 @@ export default async function TaskDetailPage({
       include: {
         user: { select: { id: true, name: true, image: true } },
       },
+    }),
+
+    prisma.contact.findMany({
+      where: { familyId, deletedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
     }),
   ]);
 
