@@ -152,6 +152,8 @@
       "CABIN": "Chalet",
       "LAND": "Terrain",
       "COMMERCIAL": "Commercial",
+      "BOAT": "Bateau",
+      "CAR": "Voiture",
       "OTHER": "Autre"
     },
     "status": {

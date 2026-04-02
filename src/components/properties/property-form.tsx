@@ -30,7 +30,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const PROPERTY_TYPES = [
-  "HOUSE", "APARTMENT", "CONDO", "VILLA", "CABIN", "LAND", "COMMERCIAL", "OTHER",
+  "HOUSE", "APARTMENT", "CONDO", "VILLA", "CABIN", "LAND", "COMMERCIAL", "BOAT", "CAR", "OTHER",
 ] as const;
 
 const propertySchema = z.object({

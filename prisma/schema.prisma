@@ -38,6 +38,8 @@ enum PropertyType {
   CABIN
   LAND
   COMMERCIAL
+  BOAT
+  CAR
   OTHER
 }
 
