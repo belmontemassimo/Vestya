@@ -74,6 +74,40 @@ export async function linkContactToProperty(
   }
 }
 
+export async function setContactPropertyLinks(
+  contactId: string,
+  propertyIds: string[],
+): Promise<ActionResult<{ synced: true }>> {
+  try {
+    const session = await requireFamilyAuth();
+    checkPermission(session.user.familyRole, "contact:update");
+
+    // Delete all existing links for this contact within the family's properties
+    await prisma.propertyContact.deleteMany({
+      where: {
+        contactId,
+        property: { familyId: session.user.familyId },
+      },
+    });
+
+    // Create new links
+    if (propertyIds.length > 0) {
+      await prisma.propertyContact.createMany({
+        data: propertyIds.map((propertyId) => ({
+          propertyId,
+          contactId,
+          relationshipType: "GENERAL",
+        })),
+      });
+    }
+
+    revalidatePath("/");
+    return { success: true, data: { synced: true } };
+  } catch (error) {
+    return handleActionError(error);
+  }
+}
+
 export async function updateContact(
   input: unknown,
 ): Promise<ActionResult<Contact>> {

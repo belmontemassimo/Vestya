@@ -2,18 +2,20 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Plus } from "lucide-react";
+import { Plus, Link2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/shared/page-header";
 import { ContactList } from "@/components/contacts/contact-list";
 import { ContactForm } from "@/components/contacts/contact-form";
 import { DeleteContactDialog } from "@/components/contacts/delete-contact-dialog";
+import { LinkContactDialog } from "@/components/contacts/link-contact-dialog";
 import {
   createContact,
   updateContact,
   deleteContact,
   linkContactToProperty,
+  setContactPropertyLinks,
 } from "@/actions/contact.actions";
 import { FormDialog } from "@/components/shared/form-dialog";
 import { useRouter, usePathname } from "@/i18n/navigation";
@@ -51,6 +53,7 @@ export function ContactsPageClient({
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<ContactData | null>(null);
   const [deletingContact, setDeletingContact] = useState<ContactData | null>(null);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const router = useRouter();
   const pathname = usePathname();
@@ -88,6 +91,22 @@ export function ContactsPageClient({
 
   const activePropertyId = activeTab !== "all" && activeTab !== "family" ? activeTab : undefined;
 
+  // Contacts NOT linked to the active property (for link existing dialog)
+  const unlinkableContacts = useMemo(() => {
+    if (!activePropertyId) return [];
+    const linked = new Set(propertyContactMap[activePropertyId] ?? []);
+    return contacts.filter((c) => !linked.has(c.id));
+  }, [contacts, activePropertyId, propertyContactMap]);
+
+  // Property IDs a specific contact is linked to (for edit form)
+  function getLinkedPropertyIds(contactId: string): string[] {
+    const ids: string[] = [];
+    for (const [propId, contactIds] of Object.entries(propertyContactMap)) {
+      if (contactIds.includes(contactId)) ids.push(propId);
+    }
+    return ids;
+  }
+
   async function handleCreate(values: Record<string, unknown>) {
     const phones = (values.phones as { value: string }[] | undefined)
       ?.map((p) => p.value).filter(Boolean) ?? [];
@@ -118,6 +137,11 @@ export function ContactsPageClient({
     return result;
   }
 
+  async function handlePropertyLinksChange(propertyIds: string[]) {
+    if (!editingContact) return;
+    await setContactPropertyLinks(editingContact.id, propertyIds);
+  }
+
   async function handleDelete() {
     if (!deletingContact) return;
     const result = await deleteContact(deletingContact.id);
@@ -127,6 +151,14 @@ export function ContactsPageClient({
     } else {
       toast.error(result.error ?? t("error"));
     }
+  }
+
+  async function handleLinkExisting(contactIds: string[]) {
+    if (!activePropertyId) return;
+    for (const contactId of contactIds) {
+      await linkContactToProperty(contactId, activePropertyId);
+    }
+    router.refresh();
   }
 
   function openEdit(id: string) {
@@ -156,14 +188,26 @@ export function ContactsPageClient({
   return (
     <div className="space-y-6">
       <PageHeader title={t("title")}>
-        <button
-          type="button"
-          onClick={() => setCreateDialogOpen(true)}
-          className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" />
-          {t("addContact")}
-        </button>
+        <div className="flex items-center gap-2">
+          {activePropertyId && (
+            <button
+              type="button"
+              onClick={() => setLinkDialogOpen(true)}
+              className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <Link2 className="h-4 w-4" />
+              {t("linkExisting")}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setCreateDialogOpen(true)}
+            className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4" />
+            {t("addContact")}
+          </button>
+        </div>
       </PageHeader>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -205,6 +249,8 @@ export function ContactsPageClient({
         {editingContact && (
           <ContactForm
             isEditing
+            properties={properties}
+            linkedPropertyIds={getLinkedPropertyIds(editingContact.id)}
             defaultValues={{
               name: editingContact.name,
               company: editingContact.company ?? "",
@@ -214,6 +260,7 @@ export function ContactsPageClient({
               emails: parseEmails(editingContact.emails),
             }}
             onSubmit={handleEdit}
+            onPropertyLinksChange={handlePropertyLinksChange}
           />
         )}
       </FormDialog>
@@ -223,6 +270,13 @@ export function ContactsPageClient({
         onOpenChange={(open) => { if (!open) setDeletingContact(null); }}
         contactName={deletingContact?.name ?? ""}
         onConfirm={handleDelete}
+      />
+
+      <LinkContactDialog
+        open={linkDialogOpen}
+        onOpenChange={setLinkDialogOpen}
+        contacts={unlinkableContacts}
+        onConfirm={handleLinkExisting}
       />
     </div>
   );

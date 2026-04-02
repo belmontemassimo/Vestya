@@ -6,7 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
   "PLUMBER", "ELECTRICIAN", "GARDENER", "CLEANER", "HANDYMAN",
@@ -46,20 +47,32 @@ const contactSchema = z.object({
 
 type ContactValues = z.infer<typeof contactSchema>;
 
+interface PropertyOption {
+  id: string;
+  name: string;
+}
+
 interface ContactFormProps {
   defaultValues?: Partial<ContactValues>;
   isEditing?: boolean;
+  properties?: readonly PropertyOption[];
+  linkedPropertyIds?: string[];
   onSubmit: (values: ContactValues) => Promise<{ success: boolean; error?: string }>;
+  onPropertyLinksChange?: (propertyIds: string[]) => Promise<void>;
 }
 
 export function ContactForm({
   defaultValues,
   isEditing = false,
+  properties = [],
+  linkedPropertyIds = [],
   onSubmit,
+  onPropertyLinksChange,
 }: ContactFormProps) {
   const t = useTranslations("contacts");
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
+  const [selectedProperties, setSelectedProperties] = useState<string[]>(linkedPropertyIds);
 
   const form = useForm<ContactValues>({
     resolver: zodResolver(contactSchema),
@@ -86,11 +99,20 @@ export function ContactForm({
     remove: removeEmail,
   } = useFieldArray({ control: form.control, name: "emails" });
 
+  function toggleProperty(id: string) {
+    setSelectedProperties((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }
+
   async function handleSubmit(values: ContactValues) {
     setIsPending(true);
     try {
       const result = await onSubmit(values);
       if (result.success) {
+        if (isEditing && onPropertyLinksChange) {
+          await onPropertyLinksChange(selectedProperties);
+        }
         toast.success(isEditing ? t("updated") : t("created"));
         router.push("/contacts");
       } else {
@@ -258,6 +280,33 @@ export function ContactForm({
                 </Button>
               </div>
             </div>
+
+            {isEditing && properties.length > 0 && (
+              <div>
+                <FormLabel className="mb-2 block">{t("linkedProperties")}</FormLabel>
+                <div className="flex flex-wrap gap-2">
+                  {properties.map((p) => {
+                    const isLinked = selectedProperties.includes(p.id);
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => toggleProperty(p.id)}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                          isLinked
+                            ? "border-blue-300 bg-blue-50 text-blue-700"
+                            : "border-slate-200 text-slate-500 hover:border-slate-300",
+                        )}
+                      >
+                        {isLinked && <Check className="h-3 w-3" />}
+                        {p.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <FormField
               control={form.control}
