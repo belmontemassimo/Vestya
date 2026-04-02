@@ -15,13 +15,13 @@ interface PropertyCalendarWidgetProps {
     endAt?: string | null;
     allDay: boolean;
   }>;
-  gridW: number;
-  gridH: number;
+  gridW?: number;
+  gridH?: number;
   propertyId?: string;
   properties?: readonly SelectOption[];
   contacts?: readonly SelectOption[];
 }
 
-export function PropertyCalendarWidget({ events, gridW, gridH, propertyId, properties, contacts }: PropertyCalendarWidgetProps) {
-  return <CalendarWidget events={events} gridW={gridW} gridH={gridH} propertyId={propertyId} properties={properties} contacts={contacts} />;
+export function PropertyCalendarWidget({ events, propertyId, properties, contacts }: PropertyCalendarWidgetProps) {
+  return <CalendarWidget events={events} propertyId={propertyId} properties={properties} contacts={contacts} />;
 }

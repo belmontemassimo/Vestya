@@ -25,8 +25,8 @@ interface SelectOption {
 
 interface CalendarWidgetProps {
   events: CalendarEvent[];
-  gridW: number;
-  gridH: number;
+  gridW?: number;
+  gridH?: number;
   propertyId?: string;
   properties?: readonly SelectOption[];
   contacts?: readonly SelectOption[];
@@ -48,7 +48,7 @@ function getEventColor(index: number): string {
 type CalendarView = "month" | "week" | "day";
 const VIEWS: CalendarView[] = ["month", "week", "day"];
 
-export function CalendarWidget({ events, gridW, gridH, propertyId, properties = [], contacts = [] }: CalendarWidgetProps) {
+export function CalendarWidget({ events, propertyId, properties = [], contacts = [] }: CalendarWidgetProps) {
   const t = useTranslations("calendar");
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
