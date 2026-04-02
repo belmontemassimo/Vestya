@@ -84,6 +84,7 @@ export interface DashboardData {
     fileName: string;
     mimeType: string;
     sizeBytes: number;
+    tags?: unknown;
     createdAt: string;
   }>;
   properties: Array<{

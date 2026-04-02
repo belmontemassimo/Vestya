@@ -14,7 +14,6 @@ import { PropertyContactsWidget } from "./contents/property-contacts-widget";
 import { PropertyTasksWidget } from "./contents/property-tasks-widget";
 import { PropertyRemindersWidget } from "./contents/property-reminders-widget";
 import { PropertyCalendarWidget } from "./contents/property-calendar-widget";
-import { PropertyDocumentsWidget } from "./contents/property-documents-widget";
 import { SpendingWidget } from "./contents/spending-widget";
 
 interface WidgetRendererProps {
@@ -162,7 +161,7 @@ function WidgetContent({
       return <DocumentsWidget documents={d.documents ?? []} propertyId={pid} tagOptions={d.tagOptions ?? []} />;
 
     case "property-documents":
-      return <PropertyDocumentsWidget documents={d.documents ?? []} propertyId={pid} tagOptions={d.tagOptions ?? []} autoSelectedTags={d.autoSelectedTags} />;
+      return <DocumentsWidget documents={d.documents ?? []} propertyId={pid} tagOptions={d.tagOptions ?? []} autoSelectedTags={d.autoSelectedTags} />;
 
     case "property": {
       const properties = d.properties ?? [];

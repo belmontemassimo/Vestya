@@ -30,6 +30,7 @@ interface DocumentsWidgetProps {
   documents: WidgetDocument[];
   propertyId?: string;
   tagOptions?: readonly TagOption[];
+  autoSelectedTags?: string[];
 }
 
 const TAG_COLORS: Record<string, string> = {
@@ -46,7 +47,7 @@ function parseTags(tags: unknown): DocumentTag[] {
   );
 }
 
-export function DocumentsWidget({ documents, propertyId, tagOptions = [] }: DocumentsWidgetProps) {
+export function DocumentsWidget({ documents, propertyId, tagOptions = [], autoSelectedTags }: DocumentsWidgetProps) {
   const t = useTranslations("documents");
   const router = useRouter();
   const [preview, setPreview] = useState<{
@@ -151,7 +152,7 @@ export function DocumentsWidget({ documents, propertyId, tagOptions = [] }: Docu
       />
 
       <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title="Upload Document">
-        <DocumentUploadForm tagOptions={tagOptions} onCreateRecord={handleCreateRecord} onComplete={handleUploadComplete} />
+        <DocumentUploadForm tagOptions={tagOptions} defaultSelectedTags={autoSelectedTags} onCreateRecord={handleCreateRecord} onComplete={handleUploadComplete} />
       </FormDialog>
     </>
   );
