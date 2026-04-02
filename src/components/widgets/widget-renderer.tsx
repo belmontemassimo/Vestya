@@ -103,11 +103,17 @@ function WidgetContent({
   const pid = context === "property" ? propertyId : undefined;
 
   switch (widget.type) {
-    case "tasks":
-      return <TasksWidget tasks={d.tasks ?? []} propertyId={pid} />;
+    case "tasks": {
+      const taskMembers = (d.members ?? []).map((m) => ({ value: m.id, label: m.name ?? m.email }));
+      const taskContacts = (d.contacts ?? []).map((c) => ({ value: c.id, label: c.name }));
+      return <TasksWidget tasks={d.tasks ?? []} propertyId={pid} members={taskMembers} contacts={taskContacts} />;
+    }
 
-    case "property-tasks":
-      return <PropertyTasksWidget tasks={d.tasks ?? []} propertyId={pid} />;
+    case "property-tasks": {
+      const ptMembers = (d.members ?? []).map((m) => ({ value: m.id, label: m.name ?? m.email }));
+      const ptContacts = (d.contacts ?? []).map((c) => ({ value: c.id, label: c.name }));
+      return <PropertyTasksWidget tasks={d.tasks ?? []} propertyId={pid} members={ptMembers} contacts={ptContacts} />;
+    }
 
     case "calendar": {
       const calPropertyOpts = (d.properties ?? []).map((p) => ({ value: p.id, label: p.name }));

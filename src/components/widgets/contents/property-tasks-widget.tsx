@@ -21,12 +21,19 @@ interface TaskItem {
   dueAt: string | null;
 }
 
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
 interface PropertyTasksWidgetProps {
   tasks: TaskItem[];
   propertyId?: string;
+  members?: readonly SelectOption[];
+  contacts?: readonly SelectOption[];
 }
 
-export function PropertyTasksWidget({ tasks: initialTasks, propertyId }: PropertyTasksWidgetProps) {
+export function PropertyTasksWidget({ tasks: initialTasks, propertyId, members = [], contacts = [] }: PropertyTasksWidgetProps) {
   const t = useTranslations("tasks");
   const locale = useLocale();
   const router = useRouter();
@@ -111,7 +118,7 @@ export function PropertyTasksWidget({ tasks: initialTasks, propertyId }: Propert
         )}
       </div>
       <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title={t("addTask")}>
-        <TaskForm properties={[]} members={[]} showPropertyField={!propertyId} onSubmit={handleCreate} defaultValues={propertyId ? { propertyId } : undefined} />
+        <TaskForm properties={[]} members={members} contacts={contacts} showPropertyField={!propertyId} onSubmit={handleCreate} defaultValues={propertyId ? { propertyId } : undefined} />
       </FormDialog>
     </>
   );
