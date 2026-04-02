@@ -22,23 +22,46 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
     where.category = searchParams.category as ContactCategory;
   }
 
-  const contacts = await prisma.contact.findMany({
-    where,
-    include: {
-      _count: {
-        select: {
-          propertyContacts: true,
-          assignedTasks: { where: { deletedAt: null } },
+  const [contacts, properties, propertyContacts] = await Promise.all([
+    prisma.contact.findMany({
+      where,
+      include: {
+        _count: {
+          select: {
+            propertyContacts: true,
+            assignedTasks: { where: { deletedAt: null } },
+          },
         },
       },
-    },
-    orderBy: { name: "asc" },
-  });
+      orderBy: { name: "asc" },
+    }),
+    prisma.property.findMany({
+      where: { familyId, deletedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.propertyContact.findMany({
+      where: {
+        property: { familyId, deletedAt: null },
+      },
+      select: { propertyId: true, contactId: true },
+    }),
+  ]);
+
+  // Build a map: propertyId -> Set of contactIds
+  const propertyContactMap: Record<string, string[]> = {};
+  for (const pc of propertyContacts) {
+    const arr = propertyContactMap[pc.propertyId] ?? [];
+    arr.push(pc.contactId);
+    propertyContactMap[pc.propertyId] = arr;
+  }
 
   return (
     <ContactsPageClient
-      contacts={contacts}
+      contacts={JSON.parse(JSON.stringify(contacts))}
       currentCategory={searchParams.category}
+      properties={properties}
+      propertyContactMap={propertyContactMap}
     />
   );
 }

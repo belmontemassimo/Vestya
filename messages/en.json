@@ -256,6 +256,8 @@
   "contacts": {
     "title": "Contacts",
     "addContact": "Add Contact",
+    "tabAll": "All",
+    "tabFamily": "Family",
     "noContacts": "No contacts yet. Add your first contact to get started.",
     "editContact": "Edit Contact",
     "name": "Full Name",
