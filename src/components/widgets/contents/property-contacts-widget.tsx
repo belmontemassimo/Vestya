@@ -6,7 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import { WidgetHeader } from "@/components/widgets/widget-header";
 import { FormDialog } from "@/components/shared/form-dialog";
 import { ContactForm } from "@/components/contacts/contact-form";
-import { createContact } from "@/actions/contact.actions";
+import { createContact, linkContactToProperty } from "@/actions/contact.actions";
 
 interface PropertyContactsWidgetProps {
   contacts: Array<{
@@ -25,7 +25,7 @@ function firstOf(arr: unknown): string | null {
   return null;
 }
 
-export function PropertyContactsWidget({ contacts }: PropertyContactsWidgetProps) {
+export function PropertyContactsWidget({ contacts, propertyId }: PropertyContactsWidgetProps) {
   const t = useTranslations("contacts");
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -36,6 +36,9 @@ export function PropertyContactsWidget({ contacts }: PropertyContactsWidgetProps
     const emails = (values.emails as { value: string }[] | undefined)
       ?.map((e) => e.value).filter(Boolean) ?? [];
     const result = await createContact({ ...values, phones, emails });
+    if (result.success && propertyId) {
+      await linkContactToProperty(result.data.id, propertyId);
+    }
     if (result.success) {
       setDialogOpen(false);
       router.refresh();

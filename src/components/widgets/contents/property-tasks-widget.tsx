@@ -111,7 +111,7 @@ export function PropertyTasksWidget({ tasks: initialTasks, propertyId }: Propert
         )}
       </div>
       <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title={t("addTask")}>
-        <TaskForm properties={[]} members={[]} onSubmit={handleCreate} defaultValues={propertyId ? { propertyId } : undefined} />
+        <TaskForm properties={[]} members={[]} showPropertyField={!propertyId} onSubmit={handleCreate} defaultValues={propertyId ? { propertyId } : undefined} />
       </FormDialog>
     </>
   );

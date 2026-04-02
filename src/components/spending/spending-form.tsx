@@ -57,6 +57,7 @@ interface SelectOption {
 interface SpendingFormProps {
   defaultValues?: Partial<SpendingValues>;
   isEditing?: boolean;
+  showPropertyField?: boolean;
   properties: readonly SelectOption[];
   onSubmit: (values: SpendingValues) => Promise<{ success: boolean; error?: string }>;
 }
@@ -64,6 +65,7 @@ interface SpendingFormProps {
 export function SpendingForm({
   defaultValues,
   isEditing = false,
+  showPropertyField = true,
   properties,
   onSubmit,
 }: SpendingFormProps) {
@@ -182,30 +184,32 @@ export function SpendingForm({
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="propertyId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("property")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t("selectProperty")} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {properties.map((p) => (
-                          <SelectItem key={p.value} value={p.value}>
-                            {p.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {showPropertyField && (
+                <FormField
+                  control={form.control}
+                  name="propertyId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("property")}</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t("selectProperty")} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {properties.map((p) => (
+                            <SelectItem key={p.value} value={p.value}>
+                              {p.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormField
                 control={form.control}
                 name="date"

@@ -55,6 +55,7 @@ interface SelectOption {
 interface TaskFormProps {
   defaultValues?: Partial<TaskValues>;
   isEditing?: boolean;
+  showPropertyField?: boolean;
   properties: readonly SelectOption[];
   members: readonly SelectOption[];
   onSubmit: (values: TaskValues) => Promise<{ success: boolean; error?: string }>;
@@ -63,6 +64,7 @@ interface TaskFormProps {
 export function TaskForm({
   defaultValues,
   isEditing = false,
+  showPropertyField = true,
   properties,
   members,
   onSubmit,
@@ -127,30 +129,32 @@ export function TaskForm({
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="propertyId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("property")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t("selectProperty")} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {properties.map((p) => (
-                          <SelectItem key={p.value} value={p.value}>
-                            {p.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {showPropertyField && (
+                <FormField
+                  control={form.control}
+                  name="propertyId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("property")}</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t("selectProperty")} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {properties.map((p) => (
+                            <SelectItem key={p.value} value={p.value}>
+                              {p.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormField
                 control={form.control}
                 name="category"

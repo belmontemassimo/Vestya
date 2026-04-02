@@ -46,6 +46,34 @@ export async function createContact(
   }
 }
 
+export async function linkContactToProperty(
+  contactId: string,
+  propertyId: string,
+  relationshipType = "GENERAL",
+): Promise<ActionResult<{ linked: true }>> {
+  try {
+    const session = await requireFamilyAuth();
+    checkPermission(session.user.familyRole, "contact:create");
+
+    await prisma.propertyContact.upsert({
+      where: {
+        propertyId_contactId_relationshipType: {
+          propertyId,
+          contactId,
+          relationshipType,
+        },
+      },
+      create: { propertyId, contactId, relationshipType },
+      update: {},
+    });
+
+    revalidatePath("/");
+    return { success: true, data: { linked: true } };
+  } catch (error) {
+    return handleActionError(error);
+  }
+}
+
 export async function updateContact(
   input: unknown,
 ): Promise<ActionResult<Contact>> {

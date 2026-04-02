@@ -121,7 +121,7 @@ export function SpendingWidget({
         </div>
       </div>
       <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title="Add Record">
-        <SpendingForm properties={[]} onSubmit={handleCreate} defaultValues={propertyId ? { propertyId } : undefined} />
+        <SpendingForm properties={[]} showPropertyField={!propertyId} onSubmit={handleCreate} defaultValues={propertyId ? { propertyId } : undefined} />
       </FormDialog>
     </>
   );
