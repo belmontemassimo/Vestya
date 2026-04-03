@@ -59,7 +59,11 @@ export function PropertiesPageClient({
 
   async function handleEdit(values: Record<string, unknown>) {
     if (!editingProperty) return { success: false, error: "No property" };
-    const result = await updateProperty({ id: editingProperty.id, ...values });
+    const result = await updateProperty({
+      id: editingProperty.id,
+      status: editingProperty.status,
+      ...values,
+    });
     if (result.success) {
       setEditingProperty(null);
       router.refresh();
