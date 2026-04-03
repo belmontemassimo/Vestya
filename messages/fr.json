@@ -365,6 +365,8 @@
   },
   "documents": {
     "title": "Documents",
+    "tabAll": "Tout",
+    "tabFamily": "Famille",
     "upload": "Télécharger un document",
     "uploadDocument": "Télécharger un document",
     "noDocuments": "Aucun document. Téléchargez votre premier document.",
@@ -418,6 +420,8 @@
   },
   "spending": {
     "title": "Dépenses",
+    "tabAll": "Tout",
+    "tabFamily": "Famille",
     "addRecord": "Ajouter",
     "editRecord": "Modifier",
     "noRecords": "Aucun enregistrement financier.",

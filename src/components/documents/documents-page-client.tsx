@@ -19,6 +19,7 @@ import { DocumentEditForm } from "@/components/documents/document-edit-form";
 import { FormDialog } from "@/components/shared/form-dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
 interface DocumentTag {
@@ -38,9 +39,15 @@ interface DocumentItem {
   sizeBytes?: number;
 }
 
+interface PropertyOption {
+  id: string;
+  name: string;
+}
+
 interface DocumentsPageClientProps {
   documents: readonly DocumentItem[];
   tagOptions: readonly TagOption[];
+  properties: readonly PropertyOption[];
 }
 
 function parseTags(tags: unknown): DocumentTag[] {
@@ -68,8 +75,10 @@ const TAG_PILL_ACTIVE: Record<string, string> = {
 export function DocumentsPageClient({
   documents,
   tagOptions,
+  properties,
 }: DocumentsPageClientProps) {
   const t = useTranslations("documents");
+  const [activeTab, setActiveTab] = useState("all");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilterTags, setSelectedFilterTags] = useState<string[]>([]);
@@ -94,16 +103,24 @@ export function DocumentsPageClient({
     return Array.from(tagMap.values());
   }, [documents]);
 
+  const tabFilteredDocuments = useMemo(() => {
+    if (activeTab === "all") return documents;
+    if (activeTab === "family") {
+      return documents.filter((doc) => !doc.property);
+    }
+    return documents.filter((doc) => doc.property?.id === activeTab);
+  }, [documents, activeTab]);
+
   const filteredDocuments = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
-    return documents.filter((doc) => {
+    return tabFilteredDocuments.filter((doc) => {
       const matchesName = !query || doc.fileName.toLowerCase().includes(query);
       const matchesTags =
         selectedFilterTags.length === 0 ||
         parseTags(doc.tags).some((tag) => selectedFilterTags.includes(tag.id));
       return matchesName && matchesTags;
     });
-  }, [documents, searchQuery, selectedFilterTags]);
+  }, [tabFilteredDocuments, searchQuery, selectedFilterTags]);
 
   function toggleFilterTag(tagId: string) {
     setSelectedFilterTags((prev) =>
@@ -207,70 +224,83 @@ export function DocumentsPageClient({
         </button>
       </PageHeader>
 
-      {/* Search and tag filters */}
-      <div className="space-y-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t("searchDocuments")}
-            className="pl-9 pr-9"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
-        {allAvailableTags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-slate-500">{t("filterByTag")}:</span>
-            {allAvailableTags.map((tag) => {
-              const isActive = selectedFilterTags.includes(tag.id);
-              return (
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="all">{t("tabAll")}</TabsTrigger>
+          <TabsTrigger value="family">{t("tabFamily")}</TabsTrigger>
+          {properties.map((p) => (
+            <TabsTrigger key={p.id} value={p.id}>
+              {p.name}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value={activeTab} className="mt-4 space-y-4">
+          {/* Search and tag filters */}
+          <div className="space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t("searchDocuments")}
+                className="pl-9 pr-9"
+              />
+              {searchQuery && (
                 <button
-                  key={tag.id}
                   type="button"
-                  onClick={() => toggleFilterTag(tag.id)}
-                  className={cn(
-                    "rounded-full px-2.5 py-0.5 text-xs font-medium transition-all",
-                    TAG_PILL_COLORS[tag.type] ?? "bg-slate-100 text-slate-700 hover:bg-slate-200",
-                    isActive && (TAG_PILL_ACTIVE[tag.type] ?? "ring-2 ring-slate-400"),
-                  )}
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
-                  {tag.label}
+                  <X className="h-4 w-4" />
                 </button>
-              );
-            })}
-            {hasActiveFilters && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="h-6 px-2 text-xs text-slate-500"
-              >
-                {t("clearFilters")}
-              </Button>
+              )}
+            </div>
+
+            {allAvailableTags.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-slate-500">{t("filterByTag")}:</span>
+                {allAvailableTags.map((tag) => {
+                  const isActive = selectedFilterTags.includes(tag.id);
+                  return (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => toggleFilterTag(tag.id)}
+                      className={cn(
+                        "rounded-full px-2.5 py-0.5 text-xs font-medium transition-all",
+                        TAG_PILL_COLORS[tag.type] ?? "bg-slate-100 text-slate-700 hover:bg-slate-200",
+                        isActive && (TAG_PILL_ACTIVE[tag.type] ?? "ring-2 ring-slate-400"),
+                      )}
+                    >
+                      {tag.label}
+                    </button>
+                  );
+                })}
+                {hasActiveFilters && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="h-6 px-2 text-xs text-slate-500"
+                  >
+                    {t("clearFilters")}
+                  </Button>
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
 
-      <DocumentList
-        documents={filteredDocuments}
-        onDownload={handleDownload}
-        onPreview={handlePreview}
-        onEdit={setEditDoc}
-        onDelete={handleDelete}
-        canEdit
-        canDelete
-      />
+          <DocumentList
+            documents={filteredDocuments}
+            onDownload={handleDownload}
+            onPreview={handlePreview}
+            onEdit={setEditDoc}
+            onDelete={handleDelete}
+            canEdit
+            canDelete
+          />
+        </TabsContent>
+      </Tabs>
 
       <FormDialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen} title={t("uploadDocument")}>
         <DocumentUploadForm

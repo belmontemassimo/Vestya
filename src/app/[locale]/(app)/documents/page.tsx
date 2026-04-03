@@ -46,6 +46,7 @@ export default async function DocumentsPage() {
     <DocumentsPageClient
       documents={JSON.parse(JSON.stringify(documents))}
       tagOptions={tagOptions}
+      properties={properties}
     />
   );
 }

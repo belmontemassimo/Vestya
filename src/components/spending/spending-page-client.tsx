@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import {
   getSpendingDocumentUrl,
 } from "@/actions/spending.actions";
 import { FormDialog } from "@/components/shared/form-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRouter } from "@/i18n/navigation";
 
 interface SelectOption {
@@ -42,8 +43,17 @@ export function SpendingPageClient({
 }: SpendingPageClientProps) {
   const t = useTranslations("spending");
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editRecord, setEditRecord] = useState<SpendingRecord | null>(null);
+
+  const filteredRecords = useMemo(() => {
+    if (activeTab === "all") return records;
+    if (activeTab === "family") {
+      return records.filter((r) => !r.property);
+    }
+    return records.filter((r) => r.property?.id === activeTab);
+  }, [records, activeTab]);
   const [previewDoc, setPreviewDoc] = useState<{
     url: string;
     name: string;
@@ -176,15 +186,28 @@ export function SpendingPageClient({
         netBalance={netBalance}
       />
 
-      <SpendingTable
-        records={records}
-        onEdit={setEditRecord}
-        onDelete={handleDelete}
-        onPreviewDocument={handlePreviewDocument}
-        onDownloadDocument={handleDownloadDocument}
-        canEdit
-        canDelete
-      />
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="all">{t("tabAll")}</TabsTrigger>
+          <TabsTrigger value="family">{t("tabFamily")}</TabsTrigger>
+          {properties.map((p) => (
+            <TabsTrigger key={p.value} value={p.value}>
+              {p.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value={activeTab} className="mt-4">
+          <SpendingTable
+            records={filteredRecords}
+            onEdit={setEditRecord}
+            onDelete={handleDelete}
+            onPreviewDocument={handlePreviewDocument}
+            onDownloadDocument={handleDownloadDocument}
+            canEdit
+            canDelete
+          />
+        </TabsContent>
+      </Tabs>
 
       {/* Create dialog */}
       <FormDialog

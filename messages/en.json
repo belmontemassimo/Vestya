@@ -365,6 +365,8 @@
   },
   "documents": {
     "title": "Documents",
+    "tabAll": "All",
+    "tabFamily": "Family",
     "upload": "Upload Document",
     "uploadDocument": "Upload Document",
     "noDocuments": "No documents yet. Upload your first document.",
@@ -418,6 +420,8 @@
   },
   "spending": {
     "title": "Spending",
+    "tabAll": "All",
+    "tabFamily": "Family",
     "addRecord": "Add Record",
     "editRecord": "Edit Record",
     "noRecords": "No financial records yet.",
