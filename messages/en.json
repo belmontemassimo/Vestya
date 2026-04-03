@@ -406,7 +406,11 @@
     "noTagsFound": "No tags found.",
     "selectTags": "Select tags...",
     "searchTags": "Search tags...",
-    "createTag": "Create \"{name}\""
+    "createTag": "Create \"{name}\"",
+  "searchDocuments": "Search documents...",
+  "filterByTag": "Filter by tag",
+  "allTags": "All tags",
+  "clearFilters": "Clear filters"
   },
   "spending": {
     "title": "Spending",

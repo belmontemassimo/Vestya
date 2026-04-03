@@ -406,7 +406,11 @@
     "noTagsFound": "Aucun tag trouvé.",
     "selectTags": "Sélectionner des tags...",
     "searchTags": "Rechercher des tags...",
-    "createTag": "Créer « {name} »"
+    "createTag": "Créer « {name} »",
+    "searchDocuments": "Rechercher des documents...",
+    "filterByTag": "Filtrer par tag",
+    "allTags": "Tous les tags",
+    "clearFilters": "Effacer les filtres"
   },
   "spending": {
     "title": "Dépenses",
