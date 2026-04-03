@@ -108,6 +108,7 @@ export interface DashboardData {
     recordType: string;
     date: string;
     notes: string | null;
+    tags?: unknown;
   }>;
   tagOptions?: Array<{
     value: string;

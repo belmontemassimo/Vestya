@@ -200,7 +200,7 @@ function WidgetContent({
         <SpendingWidget
           totalExpenses={d.totalExpenses ?? 0}
           totalIncome={d.totalIncome ?? 0}
-          records={(d.financialRecords ?? []) as { id: string; name: string; amount: number; recordType: string; date: string; notes: string | null }[]}
+          records={(d.financialRecords ?? []) as { id: string; name: string; amount: number; recordType: string; date: string; notes: string | null; tags?: unknown }[]}
           propertyId={pid}
         />
       );

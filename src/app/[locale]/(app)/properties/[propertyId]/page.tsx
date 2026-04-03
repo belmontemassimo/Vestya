@@ -110,6 +110,7 @@ export default async function PropertyDetailPage({
         recordType: true,
         date: true,
         notes: true,
+        tags: true,
       },
       orderBy: { date: "desc" },
       take: 10,
