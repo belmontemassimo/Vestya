@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -50,8 +51,12 @@ const PROPERTY_TYPES = [
 const newPropertySchema = z.object({
   name: z.string().min(1),
   propertyType: z.enum(PROPERTY_TYPES),
+  addressLine1: z.string().optional(),
   city: z.string().optional(),
+  region: z.string().optional(),
+  postalCode: z.string().optional(),
   country: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 type NewPropertyValues = z.infer<typeof newPropertySchema>;
@@ -86,7 +91,7 @@ export function WidgetPicker({
 
   const form = useForm<NewPropertyValues>({
     resolver: zodResolver(newPropertySchema),
-    defaultValues: { name: "", propertyType: "HOUSE", city: "", country: "" },
+    defaultValues: { name: "", propertyType: "HOUSE", addressLine1: "", city: "", region: "", postalCode: "", country: "", notes: "" },
   });
 
   function reset() {
@@ -284,10 +289,36 @@ export function WidgetPicker({
                   />
                   <FormField
                     control={form.control}
+                    name="addressLine1"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{tp("address")}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
                     name="city"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{tp("city")}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="postalCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{tp("postalCode")}</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -308,7 +339,33 @@ export function WidgetPicker({
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="region"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{tp("region")}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{tp("description")}</FormLabel>
+                      <FormControl>
+                        <Textarea rows={3} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="flex justify-end gap-2">
                   <Button
                     type="button"
