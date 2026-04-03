@@ -39,9 +39,7 @@ export function SpendingWidget({
   const net = totalIncome - totalExpenses;
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const recentExpenses = records
-    .filter((r) => r.recordType === "EXPENSE")
-    .slice(0, 6);
+  const recentRecords = records.slice(0, 6);
 
   async function handleCreate(values: Record<string, unknown>) {
     const payload = propertyId ? { ...values, propertyId } : values;
@@ -63,23 +61,32 @@ export function SpendingWidget({
         />
 
         <div className="relative min-h-0 flex-1 overflow-hidden">
-          {recentExpenses.length === 0 ? (
+          {recentRecords.length === 0 ? (
             <p className="text-xs italic text-slate-400">{t("noRecords")}</p>
           ) : (
             <div className="space-y-1.5">
-              {recentExpenses.map((record) => (
-                <div
-                  key={record.id}
-                  className="flex items-center justify-between rounded-lg bg-slate-50 px-2.5 py-1.5"
-                >
-                  <span className="truncate text-xs font-medium text-slate-700">
-                    {record.name}
-                  </span>
-                  <span className="shrink-0 text-xs font-semibold text-red-600">
-                    -{formatCurrency(record.amount, currency, locale)}
-                  </span>
-                </div>
-              ))}
+              {recentRecords.map((record) => {
+                const isIncome = record.recordType === "INCOME";
+                return (
+                  <div
+                    key={record.id}
+                    className="flex items-center justify-between rounded-lg bg-slate-50 px-2.5 py-1.5"
+                  >
+                    <span className="truncate text-xs font-medium text-slate-700">
+                      {record.name}
+                    </span>
+                    <span
+                      className={cn(
+                        "shrink-0 text-xs font-semibold",
+                        isIncome ? "text-green-600" : "text-red-600",
+                      )}
+                    >
+                      {isIncome ? "+" : "-"}
+                      {formatCurrency(record.amount, currency, locale)}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           )}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white to-transparent" />
