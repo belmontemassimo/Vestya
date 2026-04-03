@@ -16,7 +16,7 @@ import {
   updateSpendingSchema,
 } from "@/schemas/spending.schema";
 import type { ActionResult } from "@/types/api";
-import type { FinancialRecord, Document } from "@prisma/client";
+import type { FinancialRecord } from "@prisma/client";
 import type { Decimal } from "@prisma/client/runtime/library";
 
 function serializeFinancialRecord(
@@ -28,9 +28,29 @@ function serializeFinancialRecord(
   };
 }
 
+interface CreateSpendingInput {
+  name: string;
+  amount: number;
+  recordType: string;
+  date: string;
+  propertyId?: string;
+  tags?: Array<{ id: string; label: string; type: string }>;
+  notes?: string;
+  file?: {
+    fileName: string;
+    mimeType: string;
+    sizeBytes: number;
+  };
+}
+
+interface CreateSpendingResult {
+  record: FinancialRecord;
+  uploadUrl?: string;
+}
+
 export async function createSpendingRecord(
-  input: unknown,
-): Promise<ActionResult<FinancialRecord>> {
+  input: CreateSpendingInput,
+): Promise<ActionResult<CreateSpendingResult>> {
   try {
     const session = await requireFamilyAuth();
     checkPermission(session.user.familyRole, "spending:create");
@@ -51,6 +71,38 @@ export async function createSpendingRecord(
       },
     });
 
+    let uploadUrl: string | undefined;
+
+    // Create document + link in the same transaction if file provided
+    if (input.file) {
+      const storageKey = generateStorageKey(
+        session.user.familyId,
+        input.file.fileName,
+      );
+
+      uploadUrl = await getUploadUrl(storageKey, input.file.mimeType);
+
+      const document = await prisma.document.create({
+        data: {
+          familyId: session.user.familyId,
+          uploadedBy: session.user.id,
+          fileName: input.file.fileName,
+          storageKey,
+          mimeType: input.file.mimeType,
+          sizeBytes: input.file.sizeBytes,
+          propertyId: parsed.propertyId,
+        },
+      });
+
+      await prisma.documentLink.create({
+        data: {
+          documentId: document.id,
+          entityType: "financial_record",
+          entityId: record.id,
+        },
+      });
+    }
+
     await logActivity({
       familyId: session.user.familyId,
       userId: session.user.id,
@@ -65,7 +117,10 @@ export async function createSpendingRecord(
     });
 
     revalidatePath("/");
-    return { success: true, data: serializeFinancialRecord(record) };
+    return {
+      success: true,
+      data: { record: serializeFinancialRecord(record), uploadUrl },
+    };
   } catch (error) {
     return handleActionError(error);
   }
@@ -147,66 +202,6 @@ export async function deleteSpendingRecord(
 
     revalidatePath("/");
     return { success: true, data: { deleted: true } };
-  } catch (error) {
-    return handleActionError(error);
-  }
-}
-
-interface AttachDocumentInput {
-  recordId: string;
-  fileName: string;
-  mimeType: string;
-  sizeBytes: number;
-}
-
-export async function attachDocumentToSpending(
-  input: AttachDocumentInput,
-): Promise<ActionResult<{ uploadUrl: string; document: Document }>> {
-  try {
-    const session = await requireFamilyAuth();
-    checkPermission(session.user.familyRole, "spending:create");
-
-    const existing = await prisma.financialRecord.findFirst({
-      where: {
-        id: input.recordId,
-        familyId: session.user.familyId,
-        deletedAt: null,
-      },
-    });
-
-    if (!existing) {
-      return { success: false, error: "Record not found." };
-    }
-
-    const storageKey = generateStorageKey(
-      session.user.familyId,
-      input.fileName,
-    );
-
-    const uploadUrl = await getUploadUrl(storageKey, input.mimeType);
-
-    const document = await prisma.document.create({
-      data: {
-        familyId: session.user.familyId,
-        uploadedBy: session.user.id,
-        fileName: input.fileName,
-        storageKey,
-        mimeType: input.mimeType,
-        sizeBytes: input.sizeBytes,
-        propertyId: existing.propertyId,
-      },
-    });
-
-    await prisma.documentLink.create({
-      data: {
-        documentId: document.id,
-        entityType: "financial_record",
-        entityId: input.recordId,
-      },
-    });
-
-    revalidatePath("/");
-    return { success: true, data: { uploadUrl, document } };
   } catch (error) {
     return handleActionError(error);
   }

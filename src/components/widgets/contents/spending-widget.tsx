@@ -94,12 +94,14 @@ export function SpendingWidget({
 
   async function handleCreate(values: Record<string, unknown>) {
     const payload = propertyId ? { ...values, propertyId } : values;
-    const result = await createSpendingRecord(payload);
+    const result = await createSpendingRecord(
+      payload as unknown as Parameters<typeof createSpendingRecord>[0],
+    );
     if (result.success) {
       setDialogOpen(false);
       router.refresh();
     }
-    return result;
+    return { success: result.success, error: result.success ? undefined : result.error };
   }
 
   async function handlePreviewDocument(recordId: string) {

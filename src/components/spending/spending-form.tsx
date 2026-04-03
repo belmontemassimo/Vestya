@@ -69,16 +69,18 @@ interface SpendingFormProps {
   showPropertyField?: boolean;
   properties: readonly SelectOption[];
   tagOptions?: readonly TagOption[];
-  onSubmit: (values: {
-    name: string;
-    amount: number;
-    recordType: string;
-    date: string;
-    propertyId?: string;
-    tags: Array<{ id: string; label: string; type: string }>;
-    notes?: string;
-  }) => Promise<{ success: boolean; error?: string; recordId?: string }>;
-  onFileAttach?: (recordId: string, file: File) => Promise<{ success: boolean; error?: string }>;
+  onSubmit: (
+    values: {
+      name: string;
+      amount: number;
+      recordType: string;
+      date: string;
+      propertyId?: string;
+      tags: Array<{ id: string; label: string; type: string }>;
+      notes?: string;
+    },
+    file?: File,
+  ) => Promise<{ success: boolean; error?: string }>;
   onSuccess?: () => void;
 }
 
@@ -111,7 +113,6 @@ export function SpendingForm({
   properties,
   tagOptions = [],
   onSubmit,
-  onFileAttach,
   onSuccess,
 }: SpendingFormProps) {
   const t = useTranslations("spending");
@@ -191,22 +192,14 @@ export function SpendingForm({
         return { id, label: opt?.label ?? id, type: opt?.type ?? "custom" };
       });
 
-      const result = await onSubmit({
-        ...values,
-        tags: tagData,
-      });
+      const result = await onSubmit(
+        { ...values, tags: tagData },
+        file ?? undefined,
+      );
 
       if (!result.success) {
         toast.error(result.error ?? t("error"));
         return;
-      }
-
-      // Upload file if attached
-      if (file && onFileAttach && result.recordId) {
-        const fileResult = await onFileAttach(result.recordId, file);
-        if (!fileResult.success) {
-          toast.error(fileResult.error ?? t("error"));
-        }
       }
 
       toast.success(isEditing ? t("updated") : t("created"));

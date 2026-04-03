@@ -13,7 +13,6 @@ import {
   createSpendingRecord,
   updateSpendingRecord,
   deleteSpendingRecord,
-  attachDocumentToSpending,
   getSpendingDocumentUrl,
 } from "@/actions/spending.actions";
 import { FormDialog } from "@/components/shared/form-dialog";
@@ -51,35 +50,45 @@ export function SpendingPageClient({
     mimeType: string;
   } | null>(null);
 
-  async function handleCreate(values: Record<string, unknown>) {
-    const result = await createSpendingRecord(values);
-    if (result.success) {
-      return { success: true, recordId: result.data.id };
-    }
-    return result;
-  }
+  async function handleCreate(
+    values: Record<string, unknown>,
+    file?: File,
+  ) {
+    const input = {
+      ...values,
+      ...(file
+        ? {
+            file: {
+              fileName: file.name,
+              mimeType: file.type,
+              sizeBytes: file.size,
+            },
+          }
+        : {}),
+    };
 
-  async function handleFileAttach(recordId: string, file: File) {
-    const result = await attachDocumentToSpending({
-      recordId,
-      fileName: file.name,
-      mimeType: file.type,
-      sizeBytes: file.size,
-    });
+    const result = await createSpendingRecord(
+      input as Parameters<typeof createSpendingRecord>[0],
+    );
+
     if (!result.success) return result;
 
-    // Upload to S3
-    const xhr = new XMLHttpRequest();
-    await new Promise<void>((resolve, reject) => {
-      xhr.addEventListener("load", () => {
-        if (xhr.status >= 200 && xhr.status < 300) resolve();
-        else reject(new Error(`Upload failed: ${xhr.status}`));
+    // Upload file to S3 if presigned URL was returned
+    if (file && result.data.uploadUrl) {
+      const xhr = new XMLHttpRequest();
+      await new Promise<void>((resolve, reject) => {
+        xhr.addEventListener("load", () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve();
+          else reject(new Error(`Upload failed: ${xhr.status}`));
+        });
+        xhr.addEventListener("error", () =>
+          reject(new Error("Upload failed")),
+        );
+        xhr.open("PUT", result.data.uploadUrl!);
+        xhr.setRequestHeader("Content-Type", file.type);
+        xhr.send(file);
       });
-      xhr.addEventListener("error", () => reject(new Error("Upload failed")));
-      xhr.open("PUT", result.data.uploadUrl);
-      xhr.setRequestHeader("Content-Type", file.type);
-      xhr.send(file);
-    });
+    }
 
     return { success: true };
   }
@@ -187,7 +196,6 @@ export function SpendingPageClient({
           properties={properties}
           tagOptions={tagOptions}
           onSubmit={handleCreate}
-          onFileAttach={handleFileAttach}
           onSuccess={handleCreateSuccess}
         />
       </FormDialog>
