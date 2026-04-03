@@ -83,7 +83,7 @@ export function DocumentsWidget({ documents, propertyId, tagOptions = [], autoSe
     fileSize: number;
   }) {
     const payload: Record<string, unknown> = {
-      fileName: values.fileName,
+      fileName: values.name,
       mimeType: values.fileType,
       sizeBytes: values.fileSize,
       tags: values.tags,
