@@ -7,16 +7,16 @@ import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/activity-logger";
 import { handleActionError } from "@/lib/errors";
 import {
+  getUploadUrl,
+  getDownloadUrl,
+  generateStorageKey,
+} from "@/lib/storage";
+import {
   createSpendingSchema,
   updateSpendingSchema,
 } from "@/schemas/spending.schema";
-import { paginationSchema } from "@/schemas/common.schema";
-import type { ActionResult, PaginatedResult } from "@/types/api";
-import type {
-  FinancialRecord,
-  FinancialCategory,
-  RecordType,
-} from "@prisma/client";
+import type { ActionResult } from "@/types/api";
+import type { FinancialRecord, Document } from "@prisma/client";
 import type { Decimal } from "@prisma/client/runtime/library";
 
 function serializeFinancialRecord(
@@ -39,7 +39,13 @@ export async function createSpendingRecord(
 
     const record = await prisma.financialRecord.create({
       data: {
-        ...parsed,
+        name: parsed.name,
+        amount: parsed.amount,
+        recordType: parsed.recordType,
+        date: parsed.date,
+        propertyId: parsed.propertyId,
+        tags: parsed.tags,
+        notes: parsed.notes,
         familyId: session.user.familyId,
         createdBy: session.user.id,
       },
@@ -52,7 +58,7 @@ export async function createSpendingRecord(
       entityId: record.id,
       action: "created",
       metadata: {
-        category: record.category,
+        name: record.name,
         amount: Number(record.amount),
         recordType: record.recordType,
       },
@@ -75,13 +81,25 @@ export async function updateSpendingRecord(
     const parsed = updateSpendingSchema.parse(input);
     const { id, ...data } = parsed;
 
+    const existing = await prisma.financialRecord.findFirst({
+      where: { id, familyId: session.user.familyId, deletedAt: null },
+    });
+
+    if (!existing) {
+      return { success: false, error: "Record not found." };
+    }
+
     const record = await prisma.financialRecord.update({
-      where: {
-        id,
-        familyId: session.user.familyId,
-        deletedAt: null,
+      where: { id },
+      data: {
+        name: data.name,
+        amount: data.amount,
+        recordType: data.recordType,
+        date: data.date,
+        propertyId: data.propertyId,
+        tags: data.tags,
+        notes: data.notes,
       },
-      data,
     });
 
     await logActivity({
@@ -91,7 +109,7 @@ export async function updateSpendingRecord(
       entityId: record.id,
       action: "updated",
       metadata: {
-        category: record.category,
+        name: record.name,
         amount: Number(record.amount),
       },
     });
@@ -134,187 +152,90 @@ export async function deleteSpendingRecord(
   }
 }
 
-interface SpendingFilters {
-  page?: number;
-  limit?: number;
-  search?: string;
-  propertyId?: string;
-  category?: FinancialCategory;
-  recordType?: RecordType;
-  startDate?: string;
-  endDate?: string;
+interface AttachDocumentInput {
+  recordId: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
 }
 
-export async function getSpendingRecords(
-  filters?: SpendingFilters,
-): Promise<ActionResult<PaginatedResult<FinancialRecord>>> {
+export async function attachDocumentToSpending(
+  input: AttachDocumentInput,
+): Promise<ActionResult<{ uploadUrl: string; document: Document }>> {
   try {
     const session = await requireFamilyAuth();
-    checkPermission(session.user.familyRole, "spending:read");
+    checkPermission(session.user.familyRole, "spending:create");
 
-    const { page, limit, search } = paginationSchema.parse(filters ?? {});
-    const skip = (page - 1) * limit;
-
-    const dateFilters: Record<string, unknown> = {};
-    if (filters?.startDate) {
-      dateFilters.gte = new Date(filters.startDate);
-    }
-    if (filters?.endDate) {
-      dateFilters.lte = new Date(filters.endDate);
-    }
-
-    const where = {
-      familyId: session.user.familyId,
-      deletedAt: null,
-      ...(filters?.propertyId ? { propertyId: filters.propertyId } : {}),
-      ...(filters?.category ? { category: filters.category } : {}),
-      ...(filters?.recordType ? { recordType: filters.recordType } : {}),
-      ...(Object.keys(dateFilters).length > 0
-        ? { date: dateFilters }
-        : {}),
-      ...(search
-        ? {
-            OR: [
-              { notes: { contains: search, mode: "insensitive" as const } },
-            ],
-          }
-        : {}),
-    };
-
-    const [items, total] = await Promise.all([
-      prisma.financialRecord.findMany({
-        where,
-        orderBy: { date: "desc" },
-        skip,
-        take: limit,
-        include: {
-          property: { select: { id: true, name: true } },
-          contact: { select: { id: true, name: true } },
-        },
-      }),
-      prisma.financialRecord.count({ where }),
-    ]);
-
-    return {
-      success: true,
-      data: {
-        items: items.map(serializeFinancialRecord) as FinancialRecord[],
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+    const existing = await prisma.financialRecord.findFirst({
+      where: {
+        id: input.recordId,
+        familyId: session.user.familyId,
+        deletedAt: null,
       },
-    };
+    });
+
+    if (!existing) {
+      return { success: false, error: "Record not found." };
+    }
+
+    const storageKey = generateStorageKey(
+      session.user.familyId,
+      input.fileName,
+    );
+
+    const uploadUrl = await getUploadUrl(storageKey, input.mimeType);
+
+    const document = await prisma.document.create({
+      data: {
+        familyId: session.user.familyId,
+        uploadedBy: session.user.id,
+        fileName: input.fileName,
+        storageKey,
+        mimeType: input.mimeType,
+        sizeBytes: input.sizeBytes,
+        propertyId: existing.propertyId,
+      },
+    });
+
+    await prisma.documentLink.create({
+      data: {
+        documentId: document.id,
+        entityType: "financial_record",
+        entityId: input.recordId,
+      },
+    });
+
+    revalidatePath("/");
+    return { success: true, data: { uploadUrl, document } };
   } catch (error) {
     return handleActionError(error);
   }
 }
 
-interface CategorySummary {
-  category: FinancialCategory;
-  total: number;
-}
-
-interface MonthlySummary {
-  month: string;
-  expenses: number;
-  income: number;
-}
-
-interface SpendingSummaryData {
-  totalExpenses: number;
-  totalIncome: number;
-  byCategory: CategorySummary[];
-  byMonth: MonthlySummary[];
-}
-
-export async function getSpendingSummary(): Promise<
-  ActionResult<SpendingSummaryData>
-> {
+export async function getSpendingDocumentUrl(
+  recordId: string,
+): Promise<ActionResult<{ downloadUrl: string; fileName: string; mimeType: string }>> {
   try {
     const session = await requireFamilyAuth();
     checkPermission(session.user.familyRole, "spending:read");
 
-    const baseWhere = {
-      familyId: session.user.familyId,
-      deletedAt: null,
-    };
+    const link = await prisma.documentLink.findFirst({
+      where: { entityType: "financial_record", entityId: recordId },
+      include: { document: true },
+    });
 
-    const [expenseAgg, incomeAgg, byCategoryRaw, allRecords] =
-      await Promise.all([
-        prisma.financialRecord.aggregate({
-          where: { ...baseWhere, recordType: "EXPENSE" },
-          _sum: { amount: true },
-        }),
-        prisma.financialRecord.aggregate({
-          where: { ...baseWhere, recordType: "INCOME" },
-          _sum: { amount: true },
-        }),
-        prisma.financialRecord.groupBy({
-          by: ["category"],
-          where: baseWhere,
-          _sum: { amount: true },
-        }),
-        prisma.financialRecord.findMany({
-          where: baseWhere,
-          select: {
-            date: true,
-            amount: true,
-            recordType: true,
-          },
-          orderBy: { date: "asc" },
-        }),
-      ]);
-
-    const totalExpenses = Number(expenseAgg._sum.amount ?? 0);
-    const totalIncome = Number(incomeAgg._sum.amount ?? 0);
-
-    const byCategory: CategorySummary[] = byCategoryRaw.map((row) => ({
-      category: row.category,
-      total: Number(row._sum.amount ?? 0),
-    }));
-
-    const monthlyMap = new Map<
-      string,
-      { expenses: number; income: number }
-    >();
-
-    for (const record of allRecords) {
-      const d = new Date(record.date);
-      const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      const existing = monthlyMap.get(monthKey) ?? {
-        expenses: 0,
-        income: 0,
-      };
-
-      if (record.recordType === "EXPENSE") {
-        monthlyMap.set(monthKey, {
-          ...existing,
-          expenses: existing.expenses + Number(record.amount),
-        });
-      } else {
-        monthlyMap.set(monthKey, {
-          ...existing,
-          income: existing.income + Number(record.amount),
-        });
-      }
+    if (!link || link.document.deletedAt) {
+      return { success: false, error: "No document attached." };
     }
 
-    const byMonth: MonthlySummary[] = Array.from(monthlyMap.entries()).map(
-      ([month, data]) => ({
-        month,
-        expenses: data.expenses,
-        income: data.income,
-      }),
-    );
+    const downloadUrl = await getDownloadUrl(link.document.storageKey);
 
     return {
       success: true,
       data: {
-        totalExpenses,
-        totalIncome,
-        byCategory,
-        byMonth,
+        downloadUrl,
+        fileName: link.document.fileName,
+        mimeType: link.document.mimeType,
       },
     };
   } catch (error) {

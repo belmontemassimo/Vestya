@@ -103,9 +103,8 @@ export interface DashboardData {
   currency?: string;
   financialRecords?: Array<{
     id: string;
-    category: string;
+    name: string;
     amount: number;
-    currency: string;
     recordType: string;
     date: string;
     notes: string | null;

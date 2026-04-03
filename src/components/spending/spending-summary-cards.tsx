@@ -10,14 +10,12 @@ interface SpendingSummaryCardsProps {
   totalExpenses: number;
   totalIncome: number;
   netBalance: number;
-  currency?: string;
 }
 
 export function SpendingSummaryCards({
   totalExpenses,
   totalIncome,
   netBalance,
-  currency = "EUR",
 }: SpendingSummaryCardsProps) {
   const t = useTranslations("spending");
   const locale = useLocale();
@@ -25,21 +23,21 @@ export function SpendingSummaryCards({
   const cards = [
     {
       label: t("totalExpenses"),
-      value: formatCurrency(totalExpenses, currency, locale),
+      value: formatCurrency(totalExpenses, "EUR", locale),
       icon: TrendingDown,
       color: "text-red-600 bg-red-50",
       valueColor: "text-red-600",
     },
     {
       label: t("totalIncome"),
-      value: formatCurrency(totalIncome, currency, locale),
+      value: formatCurrency(totalIncome, "EUR", locale),
       icon: TrendingUp,
       color: "text-green-600 bg-green-50",
       valueColor: "text-green-600",
     },
     {
       label: t("netBalance"),
-      value: formatCurrency(Math.abs(netBalance), currency, locale),
+      value: formatCurrency(Math.abs(netBalance), "EUR", locale),
       icon: Wallet,
       color: netBalance >= 0 ? "text-blue-600 bg-blue-50" : "text-red-600 bg-red-50",
       valueColor: netBalance >= 0 ? "text-blue-600" : "text-red-600",

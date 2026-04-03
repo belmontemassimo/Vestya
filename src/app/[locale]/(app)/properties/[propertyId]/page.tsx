@@ -105,9 +105,8 @@ export default async function PropertyDetailPage({
       where: { propertyId, deletedAt: null },
       select: {
         id: true,
-        category: true,
+        name: true,
         amount: true,
-        currency: true,
         recordType: true,
         date: true,
         notes: true,

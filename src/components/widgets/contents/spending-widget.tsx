@@ -11,9 +11,8 @@ import { createSpendingRecord } from "@/actions/spending.actions";
 
 interface SpendingRecord {
   id: string;
-  category: string;
+  name: string;
   amount: number;
-  currency: string;
   recordType: string;
   date: string;
   notes: string | null;
@@ -57,9 +56,12 @@ export function SpendingWidget({
   return (
     <>
       <div className="flex h-full flex-col">
-        <WidgetHeader title={t("title")} onAdd={() => setDialogOpen(true)} addLabel={t("addRecord")} />
+        <WidgetHeader
+          title={t("title")}
+          onAdd={() => setDialogOpen(true)}
+          addLabel={t("addRecord")}
+        />
 
-        {/* Recent expenses list with blur fade */}
         <div className="relative min-h-0 flex-1 overflow-hidden">
           {recentExpenses.length === 0 ? (
             <p className="text-xs italic text-slate-400">{t("noRecords")}</p>
@@ -71,41 +73,38 @@ export function SpendingWidget({
                   className="flex items-center justify-between rounded-lg bg-slate-50 px-2.5 py-1.5"
                 >
                   <span className="truncate text-xs font-medium text-slate-700">
-                    {t(`category.${record.category}`)}
+                    {record.name}
                   </span>
                   <span className="shrink-0 text-xs font-semibold text-red-600">
-                    -{formatCurrency(record.amount, record.currency, locale)}
+                    -{formatCurrency(record.amount, currency, locale)}
                   </span>
                 </div>
               ))}
             </div>
           )}
-          {/* Blur fade at bottom */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white to-transparent" />
         </div>
 
-        {/* Separator */}
         <div className="border-t border-slate-200 my-2" />
 
-        {/* Totals */}
         <div className="space-y-1.5 shrink-0">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] text-slate-500">Total Expenses</span>
+            <span className="text-[11px] text-slate-500">
+              {t("totalExpenses")}
+            </span>
             <span className="text-[11px] font-semibold text-red-600">
               -{formatCurrency(totalExpenses, currency, locale)}
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-[11px] text-slate-500">Total Income</span>
+            <span className="text-[11px] text-slate-500">
+              {t("totalIncome")}
+            </span>
             <span className="text-[11px] font-semibold text-green-600">
               +{formatCurrency(totalIncome, currency, locale)}
             </span>
           </div>
-
-          {/* Separator */}
           <div className="border-t border-slate-200" />
-
-          {/* Net */}
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-900">Net</span>
             <span
@@ -120,8 +119,18 @@ export function SpendingWidget({
           </div>
         </div>
       </div>
-      <FormDialog open={dialogOpen} onOpenChange={setDialogOpen} title="Add Record">
-        <SpendingForm properties={[]} showPropertyField={!propertyId} onSubmit={handleCreate} onSuccess={() => setDialogOpen(false)} defaultValues={propertyId ? { propertyId } : undefined} />
+      <FormDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        title={t("addRecord")}
+      >
+        <SpendingForm
+          properties={[]}
+          showPropertyField={!propertyId}
+          onSubmit={handleCreate}
+          onSuccess={() => setDialogOpen(false)}
+          defaultValues={propertyId ? { propertyId } : undefined}
+        />
       </FormDialog>
     </>
   );

@@ -39,12 +39,10 @@ interface ContactDetailProps {
     }>;
     paidFinancials: Array<{
       id: string;
+      name: string;
       date: Date;
-      category: string;
       amount: unknown;
-      currency: string;
       recordType: string;
-      paymentStatus: string;
     }>;
   };
 }
@@ -213,25 +211,22 @@ export function ContactDetail({ contact }: ContactDetailProps) {
                 >
                   <div>
                     <p className="text-sm font-medium text-slate-900">
-                      {record.category}
+                      {record.name}
                     </p>
                     <p className="text-xs text-slate-400 mt-0.5">
                       {formatDateShort(record.date.toISOString(), locale)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 ml-3">
-                    <span
-                      className={
-                        record.recordType === "INCOME"
-                          ? "text-sm font-semibold text-green-600"
-                          : "text-sm font-semibold text-red-600"
-                      }
-                    >
-                      {record.recordType === "INCOME" ? "+" : "-"}
-                      {Number(record.amount).toLocaleString()} {record.currency}
-                    </span>
-                    <Badge variant="outline">{record.paymentStatus}</Badge>
-                  </div>
+                  <span
+                    className={
+                      record.recordType === "INCOME"
+                        ? "text-sm font-semibold text-green-600 ml-3"
+                        : "text-sm font-semibold text-red-600 ml-3"
+                    }
+                  >
+                    {record.recordType === "INCOME" ? "+" : "-"}
+                    {Number(record.amount).toLocaleString()} EUR
+                  </span>
                 </div>
               ))}
             </CardContent>

@@ -579,19 +579,23 @@ model DocumentLink {
 // ============================================================
 
 model FinancialRecord {
-  id            String            @id @default(cuid())
-  familyId      String            @map("family_id")
-  propertyId    String?           @map("property_id")
-  category      FinancialCategory @default(OTHER)
-  amount        Decimal           @db.Decimal(12, 2)
-  currency      String            @default("EUR") @db.VarChar(3)
-  recordType    RecordType        @map("record_type")
-  paymentStatus PaymentStatus     @default(PENDING) @map("payment_status")
-  paidToContact String?           @map("paid_to_contact")
-  date          DateTime          @db.Date
-  paymentMethod String?           @map("payment_method")
-  notes         String?           @db.Text
-  createdBy     String            @map("created_by")
+  id         String     @id @default(cuid())
+  familyId   String     @map("family_id")
+  propertyId String?    @map("property_id")
+  name       String
+  amount     Decimal    @db.Decimal(12, 2)
+  recordType RecordType @map("record_type")
+  date       DateTime   @db.Date
+  tags       Json?      @default("[]")
+  notes      String?    @db.Text
+  createdBy  String     @map("created_by")
+
+  // Deprecated — kept for backward compat during migration
+  category      FinancialCategory? @default(OTHER)
+  currency      String?            @db.VarChar(3)
+  paymentStatus PaymentStatus?     @map("payment_status")
+  paidToContact String?            @map("paid_to_contact")
+  paymentMethod String?            @map("payment_method")
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -605,9 +609,7 @@ model FinancialRecord {
 
   @@index([familyId])
   @@index([propertyId])
-  @@index([category])
   @@index([recordType])
-  @@index([paymentStatus])
   @@index([date])
   @@index([deletedAt])
   @@map("financial_records")

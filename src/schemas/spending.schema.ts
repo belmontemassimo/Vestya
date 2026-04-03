@@ -1,36 +1,22 @@
 import { z } from "zod";
-import {
-  FinancialCategory,
-  RecordType,
-  PaymentStatus,
-} from "@prisma/client";
+import { RecordType } from "@prisma/client";
 
 export const createSpendingSchema = z.object({
-  propertyId: z.string().optional(),
-  category: z.nativeEnum(FinancialCategory),
+  name: z.string().min(1, "Name is required"),
   amount: z.coerce.number().positive("Amount must be positive"),
-  currency: z.string().min(1).max(3).default("EUR"),
   recordType: z.nativeEnum(RecordType),
-  paymentStatus: z.nativeEnum(PaymentStatus).default(PaymentStatus.PENDING),
-  paidToContact: z.string().optional(),
   date: z.coerce.date(),
-  paymentMethod: z.string().optional(),
-  notes: z.string().optional(),
-});
-
-export const updateSpendingSchema = z.object({
-  id: z.string(),
   propertyId: z.string().optional(),
-  category: z.nativeEnum(FinancialCategory),
-  amount: z.coerce.number().positive("Amount must be positive"),
-  currency: z.string().min(1).max(3).default("EUR"),
-  recordType: z.nativeEnum(RecordType),
-  paymentStatus: z.nativeEnum(PaymentStatus).default(PaymentStatus.PENDING),
-  paidToContact: z.string().optional(),
-  date: z.coerce.date(),
-  paymentMethod: z.string().optional(),
+  tags: z
+    .array(z.object({ id: z.string(), label: z.string(), type: z.string() }))
+    .default([]),
   notes: z.string().optional(),
 });
 
 export type CreateSpendingInput = z.infer<typeof createSpendingSchema>;
+
+export const updateSpendingSchema = createSpendingSchema.extend({
+  id: z.string().min(1, "Record ID is required"),
+});
+
 export type UpdateSpendingInput = z.infer<typeof updateSpendingSchema>;
