@@ -86,11 +86,12 @@ export async function createSpendingRecord(
         data: {
           familyId: session.user.familyId,
           uploadedBy: session.user.id,
-          fileName: input.file.fileName,
+          fileName: parsed.name,
           storageKey,
           mimeType: input.file.mimeType,
           sizeBytes: input.file.sizeBytes,
           propertyId: parsed.propertyId,
+          tags: parsed.tags,
         },
       });
 
