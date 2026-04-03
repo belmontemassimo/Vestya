@@ -11,9 +11,11 @@ import { DocumentUploadForm, type TagOption } from "@/components/documents/docum
 import { DocumentPreview } from "@/components/documents/document-preview";
 import {
   createDocumentRecord,
+  updateDocument,
   getDocumentDownloadUrl,
   deleteDocument,
 } from "@/actions/document.actions";
+import { DocumentEditForm } from "@/components/documents/document-edit-form";
 import { FormDialog } from "@/components/shared/form-dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -71,6 +73,7 @@ export function DocumentsPageClient({
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilterTags, setSelectedFilterTags] = useState<string[]>([]);
+  const [editDoc, setEditDoc] = useState<DocumentItem | null>(null);
   const [previewDoc, setPreviewDoc] = useState<{
     url: string;
     name: string;
@@ -170,6 +173,27 @@ export function DocumentsPageClient({
     }
   }
 
+  async function handleSaveEdit(values: {
+    id: string;
+    fileName: string;
+    tags: Array<{ id: string; label: string; type: string }>;
+  }) {
+    const result = await updateDocument({
+      id: values.id,
+      fileName: values.fileName,
+      tags: values.tags,
+    });
+    if (result.success) {
+      return { success: true };
+    }
+    return { success: false, error: result.error };
+  }
+
+  function handleEditComplete() {
+    setEditDoc(null);
+    router.refresh();
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader title={t("title")}>
@@ -242,7 +266,9 @@ export function DocumentsPageClient({
         documents={filteredDocuments}
         onDownload={handleDownload}
         onPreview={handlePreview}
+        onEdit={setEditDoc}
         onDelete={handleDelete}
+        canEdit
         canDelete
       />
 
@@ -252,6 +278,20 @@ export function DocumentsPageClient({
           onCreateRecord={handleCreateRecord}
           onComplete={handleComplete}
         />
+      </FormDialog>
+
+      <FormDialog open={!!editDoc} onOpenChange={(open) => { if (!open) setEditDoc(null); }} title={t("editDocument")}>
+        {editDoc && (
+          <DocumentEditForm
+            key={editDoc.id}
+            documentId={editDoc.id}
+            initialName={editDoc.fileName}
+            initialTags={parseTags(editDoc.tags)}
+            tagOptions={tagOptions}
+            onSave={handleSaveEdit}
+            onComplete={handleEditComplete}
+          />
+        )}
       </FormDialog>
 
       <DocumentPreview

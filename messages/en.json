@@ -410,7 +410,11 @@
   "searchDocuments": "Search documents...",
   "filterByTag": "Filter by tag",
   "allTags": "All tags",
-  "clearFilters": "Clear filters"
+  "clearFilters": "Clear filters",
+  "edit": "Edit",
+  "editDocument": "Edit Document",
+  "updated": "Document updated successfully!",
+  "saveChanges": "Save Changes"
   },
   "spending": {
     "title": "Spending",

@@ -30,6 +30,7 @@ export const PERMISSIONS = {
   // Documents — Member can upload, Admin can do everything
   "document:upload": ["OWNER", "ADMIN", "MEMBER"],
   "document:read": ["OWNER", "ADMIN", "MEMBER", "VIEWER"],
+  "document:update": ["OWNER", "ADMIN"],
   "document:delete": ["OWNER", "ADMIN"],
 
   // Spending — Member can view and create, Admin can do everything

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations, useLocale } from "next-intl";
-import { FileText, Download, Trash2, Eye } from "lucide-react";
+import { FileText, Download, Trash2, Eye, Pencil } from "lucide-react";
 import { formatDateShort } from "@/lib/utils";
 import {
   Table,
@@ -36,7 +36,9 @@ interface DocumentListProps {
   documents: readonly Document[];
   onDownload?: (doc: Document) => void;
   onPreview?: (doc: Document) => void;
+  onEdit?: (doc: Document) => void;
   onDelete?: (docId: string) => void;
+  canEdit?: boolean;
   canDelete?: boolean;
 }
 
@@ -64,7 +66,9 @@ export function DocumentList({
   documents,
   onDownload,
   onPreview,
+  onEdit,
   onDelete,
+  canEdit = false,
   canDelete = false,
 }: DocumentListProps) {
   const t = useTranslations("documents");
@@ -150,6 +154,11 @@ export function DocumentList({
                     <Button variant="ghost" size="icon" onClick={() => onDownload?.(doc)} title={t("download")}>
                       <Download className="h-4 w-4" />
                     </Button>
+                    {canEdit && (
+                      <Button variant="ghost" size="icon" onClick={() => onEdit?.(doc)} title={t("edit")}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
                     {canDelete && (
                       <Button variant="ghost" size="icon" onClick={() => onDelete?.(doc.id)} title={t("delete")}>
                         <Trash2 className="h-4 w-4 text-red-500" />

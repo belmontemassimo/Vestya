@@ -12,7 +12,7 @@ import {
   deleteFile,
   generateStorageKey,
 } from "@/lib/storage";
-import { uploadDocumentSchema } from "@/schemas/document.schema";
+import { uploadDocumentSchema, updateDocumentSchema } from "@/schemas/document.schema";
 import { paginationSchema } from "@/schemas/common.schema";
 import type { ActionResult, PaginatedResult } from "@/types/api";
 import type { Document, VisibilityLevel } from "@prisma/client";
@@ -65,6 +65,49 @@ export async function createDocumentRecord(
 
     revalidatePath("/");
     return { success: true, data: { uploadUrl, document } };
+  } catch (error) {
+    return handleActionError(error);
+  }
+}
+
+export async function updateDocument(
+  input: unknown,
+): Promise<ActionResult<Document>> {
+  try {
+    const session = await requireFamilyAuth();
+    checkPermission(session.user.familyRole, "document:update");
+
+    const parsed = updateDocumentSchema.parse(input);
+    const { id, ...data } = parsed;
+
+    const existing = await prisma.document.findFirst({
+      where: {
+        id,
+        familyId: session.user.familyId,
+        deletedAt: null,
+      },
+    });
+
+    if (!existing) {
+      return { success: false, error: "Document not found." };
+    }
+
+    const document = await prisma.document.update({
+      where: { id },
+      data,
+    });
+
+    await logActivity({
+      familyId: session.user.familyId,
+      userId: session.user.id,
+      entityType: "document",
+      entityId: document.id,
+      action: "updated",
+      metadata: { fileName: document.fileName },
+    });
+
+    revalidatePath("/");
+    return { success: true, data: document };
   } catch (error) {
     return handleActionError(error);
   }

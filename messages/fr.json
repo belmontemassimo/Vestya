@@ -410,7 +410,11 @@
     "searchDocuments": "Rechercher des documents...",
     "filterByTag": "Filtrer par tag",
     "allTags": "Tous les tags",
-    "clearFilters": "Effacer les filtres"
+    "clearFilters": "Effacer les filtres",
+    "edit": "Modifier",
+    "editDocument": "Modifier le document",
+    "updated": "Document modifié avec succès !",
+    "saveChanges": "Enregistrer"
   },
   "spending": {
     "title": "Dépenses",
