@@ -19,6 +19,46 @@ import type { ActionResult } from "@/types/api";
 import type { FinancialRecord } from "@prisma/client";
 import type { Decimal } from "@prisma/client/runtime/library";
 
+type TagEntry = { id: string; label: string; type: string };
+
+async function buildAutoTags(
+  propertyId: string | undefined,
+  recordType: string,
+  userTags: TagEntry[],
+): Promise<TagEntry[]> {
+  const autoTags: TagEntry[] = [];
+
+  // Add property tag
+  if (propertyId) {
+    const property = await prisma.property.findUnique({
+      where: { id: propertyId },
+      select: { name: true },
+    });
+    if (property) {
+      autoTags.push({ id: propertyId, label: property.name, type: "property" });
+    }
+  }
+
+  // Add record type tag
+  const typeLabel = recordType === "INCOME" ? "Income" : "Expense";
+  autoTags.push({
+    id: `type-${recordType.toLowerCase()}`,
+    label: typeLabel,
+    type: "custom",
+  });
+
+  // Merge: auto-tags first, then user tags (skip duplicates by id)
+  const seenIds = new Set(autoTags.map((t) => t.id));
+  const merged = [...autoTags];
+  for (const tag of userTags) {
+    if (!seenIds.has(tag.id)) {
+      merged.push(tag);
+      seenIds.add(tag.id);
+    }
+  }
+  return merged;
+}
+
 function serializeFinancialRecord(
   record: FinancialRecord,
 ): FinancialRecord {
@@ -56,6 +96,11 @@ export async function createSpendingRecord(
     checkPermission(session.user.familyRole, "spending:create");
 
     const parsed = createSpendingSchema.parse(input);
+    const tags = await buildAutoTags(
+      parsed.propertyId,
+      parsed.recordType,
+      parsed.tags as TagEntry[],
+    );
 
     const record = await prisma.financialRecord.create({
       data: {
@@ -64,7 +109,7 @@ export async function createSpendingRecord(
         recordType: parsed.recordType,
         date: parsed.date,
         propertyId: parsed.propertyId,
-        tags: parsed.tags,
+        tags,
         notes: parsed.notes,
         familyId: session.user.familyId,
         createdBy: session.user.id,
@@ -91,7 +136,7 @@ export async function createSpendingRecord(
           mimeType: input.file.mimeType,
           sizeBytes: input.file.sizeBytes,
           propertyId: parsed.propertyId,
-          tags: parsed.tags,
+          tags,
         },
       });
 
@@ -145,6 +190,12 @@ export async function updateSpendingRecord(
       return { success: false, error: "Record not found." };
     }
 
+    const tags = await buildAutoTags(
+      data.propertyId,
+      data.recordType,
+      data.tags as TagEntry[],
+    );
+
     const record = await prisma.financialRecord.update({
       where: { id },
       data: {
@@ -153,7 +204,7 @@ export async function updateSpendingRecord(
         recordType: data.recordType,
         date: data.date,
         propertyId: data.propertyId,
-        tags: data.tags,
+        tags,
         notes: data.notes,
       },
     });

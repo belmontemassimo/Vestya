@@ -120,14 +120,30 @@ export function SpendingForm({
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Tags state
-  const initialTagIds = defaultSelectedTags ??
-    defaultValues?.tags?.map((tag) => tag.id) ?? [];
-  const [selectedTags, setSelectedTags] = useState<string[]>(initialTagIds);
+  // Filter out property tags and auto-generated type tags from the picker
+  // (these are added automatically by the server action)
+  const autoTagIds = new Set(["type-expense", "type-income"]);
+  const filteredTagOptions = tagOptions.filter(
+    (o) => o.type !== "property" && !autoTagIds.has(o.value),
+  );
+
+  // Tags state — strip auto-tags from defaults when editing
+  const initialTagIds = (
+    defaultSelectedTags ??
+    defaultValues?.tags?.map((tag) => tag.id) ?? []
+  ).filter((id) => !autoTagIds.has(id));
+  // Also strip property tags from initial selection
+  const propertyTagIds = new Set(
+    tagOptions.filter((o) => o.type === "property").map((o) => o.value),
+  );
+  const cleanedInitialTagIds = initialTagIds.filter(
+    (id) => !propertyTagIds.has(id),
+  );
+  const [selectedTags, setSelectedTags] = useState<string[]>(cleanedInitialTagIds);
   const [customTags, setCustomTags] = useState<TagOption[]>(() => {
-    const knownIds = new Set(tagOptions.map((o) => o.value));
+    const knownIds = new Set(filteredTagOptions.map((o) => o.value));
     return (defaultValues?.tags ?? [])
-      .filter((tag) => !knownIds.has(tag.id))
+      .filter((tag) => !knownIds.has(tag.id) && tag.type !== "property" && !autoTagIds.has(tag.id))
       .map((tag) => ({
         value: tag.id,
         label: tag.label,
@@ -137,7 +153,7 @@ export function SpendingForm({
   const [tagSearch, setTagSearch] = useState("");
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false);
 
-  const allTagOptions = [...tagOptions, ...customTags];
+  const allTagOptions = [...filteredTagOptions, ...customTags];
 
   const form = useForm<FormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
