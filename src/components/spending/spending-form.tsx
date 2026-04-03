@@ -77,8 +77,8 @@ interface SpendingFormProps {
     propertyId?: string;
     tags: Array<{ id: string; label: string; type: string }>;
     notes?: string;
-  }) => Promise<{ success: boolean; error?: string }>;
-  onFileAttach?: (file: File) => Promise<{ success: boolean; error?: string }>;
+  }) => Promise<{ success: boolean; error?: string; recordId?: string }>;
+  onFileAttach?: (recordId: string, file: File) => Promise<{ success: boolean; error?: string }>;
   onSuccess?: () => void;
 }
 
@@ -202,8 +202,8 @@ export function SpendingForm({
       }
 
       // Upload file if attached
-      if (file && onFileAttach) {
-        const fileResult = await onFileAttach(file);
+      if (file && onFileAttach && result.recordId) {
+        const fileResult = await onFileAttach(result.recordId, file);
         if (!fileResult.success) {
           toast.error(fileResult.error ?? t("error"));
         }

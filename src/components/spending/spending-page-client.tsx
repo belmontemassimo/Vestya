@@ -51,21 +51,17 @@ export function SpendingPageClient({
     mimeType: string;
   } | null>(null);
 
-  // Track the last created record ID for file attachment
-  const [lastCreatedId, setLastCreatedId] = useState<string | null>(null);
-
   async function handleCreate(values: Record<string, unknown>) {
     const result = await createSpendingRecord(values);
     if (result.success) {
-      setLastCreatedId(result.data.id);
+      return { success: true, recordId: result.data.id };
     }
     return result;
   }
 
-  async function handleFileAttach(file: File) {
-    if (!lastCreatedId) return { success: false, error: "No record to attach to." };
+  async function handleFileAttach(recordId: string, file: File) {
     const result = await attachDocumentToSpending({
-      recordId: lastCreatedId,
+      recordId,
       fileName: file.name,
       mimeType: file.type,
       sizeBytes: file.size,
@@ -90,7 +86,6 @@ export function SpendingPageClient({
 
   function handleCreateSuccess() {
     setCreateDialogOpen(false);
-    setLastCreatedId(null);
     router.refresh();
   }
 
