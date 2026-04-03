@@ -202,6 +202,8 @@ function WidgetContent({
           totalIncome={d.totalIncome ?? 0}
           records={(d.financialRecords ?? []) as { id: string; name: string; amount: number; recordType: string; date: string; notes: string | null; tags?: unknown }[]}
           propertyId={pid}
+          properties={(d.properties ?? []).map((p) => ({ value: p.id, label: p.name }))}
+          tagOptions={d.tagOptions}
         />
       );
 

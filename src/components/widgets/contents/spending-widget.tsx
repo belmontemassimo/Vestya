@@ -25,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type { TagOption } from "@/components/spending/spending-form";
 import {
   createSpendingRecord,
   getSpendingDocumentUrl,
@@ -46,6 +47,11 @@ interface SpendingRecord {
   tags?: unknown;
 }
 
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
 interface SpendingWidgetProps {
   totalExpenses: number;
   totalIncome: number;
@@ -53,6 +59,8 @@ interface SpendingWidgetProps {
   currency?: string;
   propertyId?: string;
   propertyName?: string;
+  properties?: readonly SelectOption[];
+  tagOptions?: readonly TagOption[];
 }
 
 function parseTags(tags: unknown): RecordTag[] {
@@ -77,6 +85,8 @@ export function SpendingWidget({
   currency = "EUR",
   propertyId,
   propertyName,
+  properties = [],
+  tagOptions = [],
 }: SpendingWidgetProps) {
   const t = useTranslations("spending");
   const locale = useLocale();
@@ -92,16 +102,53 @@ export function SpendingWidget({
 
   const recentRecords = records.slice(0, 6);
 
-  async function handleCreate(values: Record<string, unknown>) {
-    const payload = propertyId ? { ...values, propertyId } : values;
+  async function handleCreate(
+    values: Record<string, unknown>,
+    file?: File,
+  ) {
+    const input = {
+      ...values,
+      ...(propertyId ? { propertyId } : {}),
+      ...(file
+        ? {
+            file: {
+              fileName: file.name,
+              mimeType: file.type,
+              sizeBytes: file.size,
+            },
+          }
+        : {}),
+    };
+
     const result = await createSpendingRecord(
-      payload as unknown as Parameters<typeof createSpendingRecord>[0],
+      input as unknown as Parameters<typeof createSpendingRecord>[0],
     );
-    if (result.success) {
-      setDialogOpen(false);
-      router.refresh();
+
+    if (!result.success) return result;
+
+    // Upload file to S3 if presigned URL was returned
+    if (file && result.data.uploadUrl) {
+      const xhr = new XMLHttpRequest();
+      await new Promise<void>((resolve, reject) => {
+        xhr.addEventListener("load", () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve();
+          else reject(new Error(`Upload failed: ${xhr.status}`));
+        });
+        xhr.addEventListener("error", () =>
+          reject(new Error("Upload failed")),
+        );
+        xhr.open("PUT", result.data.uploadUrl!);
+        xhr.setRequestHeader("Content-Type", file.type);
+        xhr.send(file);
+      });
     }
-    return { success: result.success, error: result.success ? undefined : result.error };
+
+    return { success: true };
+  }
+
+  function handleCreateSuccess() {
+    setDialogOpen(false);
+    router.refresh();
   }
 
   async function handlePreviewDocument(recordId: string) {
@@ -211,10 +258,11 @@ export function SpendingWidget({
         title={t("addRecord")}
       >
         <SpendingForm
-          properties={[]}
+          properties={properties}
+          tagOptions={tagOptions}
           showPropertyField={!propertyId}
           onSubmit={handleCreate}
-          onSuccess={() => setDialogOpen(false)}
+          onSuccess={handleCreateSuccess}
           defaultValues={propertyId ? { propertyId } : undefined}
         />
       </FormDialog>
