@@ -1,14 +1,19 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Check, Map, ImageIcon, Upload, Loader2 } from "lucide-react";
+import { Check, Map, ImageIcon, Upload, Loader2, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { useRouter } from "@/i18n/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import type { WidgetType } from "@/types/dashboard";
 import { getWidgetsForContext } from "@/config/widget-registry";
 import {
   getPropertyCoverUploadUrl,
   setPropertyCoverImage,
+  createProperty,
 } from "@/actions/property.actions";
 import {
   Dialog,
@@ -18,9 +23,38 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 
-type PickerStep = "widgets" | "selectProperty" | "selectDisplay" | "uploadImage";
+type PickerStep = "widgets" | "selectProperty" | "createProperty" | "selectDisplay" | "uploadImage";
+
+const PROPERTY_TYPES = [
+  "HOUSE", "APARTMENT", "CONDO", "VILLA", "CABIN", "LAND", "COMMERCIAL", "BOAT", "CAR", "OTHER",
+] as const;
+
+const newPropertySchema = z.object({
+  name: z.string().min(1),
+  propertyType: z.enum(PROPERTY_TYPES),
+  city: z.string().optional(),
+  country: z.string().optional(),
+});
+
+type NewPropertyValues = z.infer<typeof newPropertySchema>;
 
 interface WidgetPickerProps {
   open: boolean;
@@ -40,17 +74,27 @@ export function WidgetPicker({
   properties = [],
 }: WidgetPickerProps) {
   const t = useTranslations("widgets");
+  const tp = useTranslations("properties");
+  const router = useRouter();
   const [step, setStep] = useState<PickerStep>("widgets");
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const availableWidgets = getWidgetsForContext(context);
+
+  const form = useForm<NewPropertyValues>({
+    resolver: zodResolver(newPropertySchema),
+    defaultValues: { name: "", propertyType: "HOUSE", city: "", country: "" },
+  });
 
   function reset() {
     setStep("widgets");
     setSelectedPropertyId(null);
     setIsUploading(false);
+    setIsCreating(false);
+    form.reset();
   }
 
   function handleWidgetClick(type: WidgetType, hasConfig: boolean) {
@@ -70,6 +114,26 @@ export function WidgetPicker({
   function handlePropertySelect(propertyId: string) {
     setSelectedPropertyId(propertyId);
     setStep("selectDisplay");
+  }
+
+  async function handleCreateProperty(values: NewPropertyValues) {
+    setIsCreating(true);
+    try {
+      const result = await createProperty(values);
+      if (!result.success) {
+        toast.error(result.error ?? tp("error"));
+        return;
+      }
+      toast.success(tp("created"));
+      router.refresh();
+      // Continue the widget flow with the newly created property
+      setSelectedPropertyId(result.data.id);
+      setStep("selectDisplay");
+    } catch {
+      toast.error(tp("error"));
+    } finally {
+      setIsCreating(false);
+    }
   }
 
   function handleDisplayMap() {
@@ -160,7 +224,109 @@ export function WidgetPicker({
                   {property.name}
                 </Button>
               ))}
+              <Button
+                variant="outline"
+                className="justify-start border-dashed text-slate-500 hover:text-slate-700"
+                onClick={() => setStep("createProperty")}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                {t("createNewProperty")}
+              </Button>
             </div>
+          </div>
+        )}
+
+        {step === "createProperty" && (
+          <div className="space-y-4">
+            <p className="text-sm text-slate-500">{t("createNewProperty")}</p>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(handleCreateProperty)}
+                className="space-y-4"
+              >
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{tp("name")}</FormLabel>
+                        <FormControl>
+                          <Input placeholder={tp("namePlaceholder")} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="propertyType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{tp("typeLabel")}</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {PROPERTY_TYPES.map((type) => (
+                              <SelectItem key={type} value={type}>
+                                {tp(`type.${type}` as Parameters<typeof tp>[0])}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{tp("city")}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="country"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{tp("country")}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      form.reset();
+                      setStep("selectProperty");
+                    }}
+                  >
+                    {t("cancel")}
+                  </Button>
+                  <Button type="submit" disabled={isCreating}>
+                    {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {tp("addProperty")}
+                  </Button>
+                </div>
+              </form>
+            </Form>
           </div>
         )}
 

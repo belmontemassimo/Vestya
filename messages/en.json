@@ -563,7 +563,8 @@
     "uploadCoverImage": "Upload a cover image for this property",
     "dropOrClickImage": "Click below to select an image",
     "selectImage": "Select Image",
-    "changeImage": "Change image"
+    "changeImage": "Change image",
+    "createNewProperty": "Create new property"
   },
   "messages": {
     "title": "Messages",

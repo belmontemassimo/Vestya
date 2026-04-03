@@ -563,7 +563,8 @@
     "uploadCoverImage": "Télécharger une image de couverture",
     "dropOrClickImage": "Cliquez ci-dessous pour sélectionner une image",
     "selectImage": "Sélectionner une image",
-    "changeImage": "Changer l'image"
+    "changeImage": "Changer l'image",
+    "createNewProperty": "Créer une propriété"
   },
   "messages": {
     "title": "Messages",
